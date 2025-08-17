@@ -11,7 +11,6 @@ import {
   ellipsisHorizontal,
   ellipsisVertical,
 } from 'ionicons/icons';
-import { HeaderComponent } from '../../shared/components/header/header.component';
 import { EstatisticaComponent } from 'src/app/shared/components/dashboard/estatistica/estatistica.component';
 
 @Component({
@@ -23,7 +22,6 @@ import { EstatisticaComponent } from 'src/app/shared/components/dashboard/estati
     IonContent,
     CommonModule,
     FormsModule,
-    HeaderComponent,
     EstatisticaComponent
   ],
 })

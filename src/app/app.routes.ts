@@ -5,14 +5,31 @@ import { loginGuard } from './shared/guards/login.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'tabs/dashboard',
+    redirectTo: 'dashboard',
     pathMatch: 'full',
   },
   {
-    path: 'tabs',
-    loadChildren: () =>
-      import('./shared/components/tabs/tabs.routes').then((m) => m.routes),
+    path: '',
+    loadComponent: () =>
+      import('./shared/components/main-layout/main-layout.component').then((m) => m.MainLayoutComponent),
     canActivate: [authGuard],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage),
+      },
+      {
+        path: 'scanner',
+        loadComponent: () =>
+          import('./features/scanner/scanner.page').then((m) => m.ScannerPage),
+      },
+      {
+        path: 'config',
+        loadComponent: () =>
+          import('./features/config/config.page').then((m) => m.ConfigPage),
+      },
+    ],
   },
   {
     path: 'login',

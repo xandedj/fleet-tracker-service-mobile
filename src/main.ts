@@ -42,7 +42,15 @@ import {
   list,
   chatbubbles,
   server,
-  location
+  location,
+  homeOutline,
+  home,
+  qrCodeOutline,
+  qrCode,
+  settingsOutline,
+  logOutOutline,
+  menuOutline,
+  closeOutline
 } from 'ionicons/icons';
 
 import { routes } from './app/app.routes';
@@ -77,7 +85,15 @@ addIcons({
   'list': list,
   'chatbubbles': chatbubbles,
   'server': server,
-  'location': location
+  'location': location,
+  'home-outline': homeOutline,
+  'home': home,
+  'qr-code-outline': qrCodeOutline,
+  'qr-code': qrCode,
+  'settings-outline': settingsOutline,
+  'log-out-outline': logOutOutline,
+  'menu-outline': menuOutline,
+  'close-outline': closeOutline
 });
 
 bootstrapApplication(AppComponent, {

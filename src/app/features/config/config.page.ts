@@ -40,7 +40,6 @@ import {
   server,
   location
 } from 'ionicons/icons';
-import { HeaderComponent } from '../../shared/components/header/header.component';
 import { TrackerConfigService } from '../../shared/services/tracker-config.service';
 import {
   TrackerDevice,
@@ -77,8 +76,7 @@ import {
     IonItemOption,
     IonBadge,
     CommonModule,
-    ReactiveFormsModule,
-    HeaderComponent
+    ReactiveFormsModule
   ]
 })
 export class ConfigPage implements OnInit {

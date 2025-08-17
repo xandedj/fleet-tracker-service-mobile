@@ -1,0 +1,241 @@
+// User Info Section
+.user-info {
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  color: white;
+  
+  .user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    ion-icon {
+      font-size: 24px;
+      color: white;
+    }
+  }
+  
+  .user-details {
+    flex: 1;
+    
+    h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+// Menu Items
+ion-list {
+  padding: 8px 0;
+  
+  ion-item {
+    --background: transparent;
+    --color: var(--ion-color-dark);
+    --border-radius: 8px;
+    margin: 2px 8px;
+    transition: all 0.3s ease;
+    
+    &.active-item {
+      --background: var(--ion-color-primary-tint);
+      --color: var(--ion-color-primary);
+      font-weight: 600;
+      
+      ion-icon {
+        transform: scale(1.1);
+      }
+    }
+    
+    &:hover {
+      --background: var(--ion-color-light);
+    }
+    
+    ion-icon {
+      margin-right: 12px;
+      transition: transform 0.3s ease;
+    }
+  }
+}
+
+// Menu Footer
+.menu-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  border-top: 1px solid var(--ion-color-light-shade);
+  background: var(--ion-color-light);
+  
+  ion-item {
+    --background: transparent;
+    --border-radius: 8px;
+    margin: 2px 0;
+    
+    &:hover {
+      --background: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+// Header
+ion-header {
+  ion-toolbar {
+    --background: var(--ion-color-primary);
+    --color: white;
+    
+    .header-logo {
+      height: 32px;
+      width: auto;
+    }
+    
+    ion-button {
+      --color: white;
+      
+      &:hover {
+        --background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
+
+// Bottom Navigation
+.bottom-nav {
+  --background: white;
+  --border: 1px solid var(--ion-color-light-shade);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  
+  ion-tab-button {
+    --color: var(--ion-color-medium);
+    --color-selected: var(--ion-color-primary);
+    --background-focused: var(--ion-color-primary-tint);
+    transition: all 0.3s ease;
+    
+    &.tab-selected {
+      --color: var(--ion-color-primary);
+      transform: translateY(-2px);
+      
+      ion-icon {
+        transform: scale(1.1);
+      }
+      
+      ion-label {
+        font-weight: 600;
+      }
+    }
+    
+    ion-icon {
+      transition: transform 0.3s ease;
+    }
+    
+    ion-label {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+  }
+}
+
+// Split Pane Adjustments
+ion-split-pane {
+  --side-width: 280px;
+  
+  ion-menu {
+    --background: white;
+    --width: 280px;
+    
+    ion-content {
+      --background: white;
+      position: relative;
+    }
+  }
+}
+
+// Main Content
+.ion-page {
+  ion-content {
+    --background: var(--ion-color-light);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .user-info {
+    padding: 16px 12px;
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+    
+    .user-details {
+      h3 {
+        font-size: 14px;
+      }
+      
+      p {
+        font-size: 12px;
+      }
+    }
+  }
+  
+  ion-split-pane {
+    --side-width: 260px;
+    
+    ion-menu {
+      --width: 260px;
+    }
+  }
+}
+
+// Animations
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.menu-item-enter {
+  animation: slideIn 0.3s ease-out;
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  .user-info {
+    background: linear-gradient(135deg, var(--ion-color-primary-shade), var(--ion-color-primary));
+  }
+  
+  .menu-footer {
+    background: var(--ion-color-step-50);
+    border-top-color: var(--ion-color-step-150);
+  }
+  
+  .bottom-nav {
+    --background: var(--ion-color-step-50);
+    --border: 1px solid var(--ion-color-step-150);
+  }
+}

@@ -85,7 +85,7 @@ export class FormLoginComponent implements OnInit {
           });
           await toast.present();
           
-          this.router.navigate(['/tabs/dashboard']);
+          this.router.navigate(['/dashboard']);
         },
         error: async (error) => {
           await loading.dismiss();
