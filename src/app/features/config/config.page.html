@@ -1,13 +1,170 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>config</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">config</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <app-header></app-header>
+  
+  <!-- Formulário de Configuração -->
+  <ion-card *ngIf="!currentSession">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="phone-portrait"></ion-icon>
+        Configuração de Rastreador
+      </ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <form [formGroup]="configForm" (ngSubmit)="startConfiguration()">
+        <!-- Número do Chip -->
+        <ion-item [class.ion-invalid]="isFieldInvalid('chipNumber')">
+          <ion-label position="floating">
+            <ion-icon name="phone-portrait"></ion-icon>
+            Número do Chip
+          </ion-label>
+          <ion-input
+            type="tel"
+            formControlName="chipNumber"
+            placeholder="Ex: 11987654321"
+            [class.ion-invalid]="isFieldInvalid('chipNumber')"
+            [class.ion-touched]="configForm.get('chipNumber')?.touched">
+          </ion-input>
+        </ion-item>
+        <ion-text color="danger" *ngIf="isFieldInvalid('chipNumber')" class="error-message">
+          {{ getErrorMessage('chipNumber') }}
+        </ion-text>
+
+        <!-- Tipo do Dispositivo -->
+        <ion-item>
+          <ion-label position="floating">
+            <ion-icon name="settings"></ion-icon>
+            Tipo do Dispositivo
+          </ion-label>
+          <ion-select formControlName="deviceType" placeholder="Selecione o dispositivo">
+            <ion-select-option value="GT02D">GT02D</ion-select-option>
+            <ion-select-option value="CRX3_MINI" disabled>CRX3 Mini (Em breve)</ion-select-option>
+            <ion-select-option value="FMB125" disabled>FMB125 (Em breve)</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Operadora -->
+        <ion-item>
+          <ion-label position="floating">
+            <ion-icon name="settings"></ion-icon>
+            Operadora
+          </ion-label>
+          <ion-select formControlName="operator" placeholder="Selecione a operadora">
+            <ion-select-option
+              *ngFor="let operator of operatorConfigs"
+              [value]="operator.name">
+              {{ operator.name }} ({{ operator.apn }})
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Botão de Configurar -->
+        <ion-button
+          expand="block"
+          type="submit"
+          [disabled]="configForm.invalid || isConfiguring"
+          class="config-button">
+          <ion-icon name="send" slot="start"></ion-icon>
+          Iniciar Configuração
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Sessão de Configuração Ativa -->
+  <div *ngIf="currentSession">
+    <!-- Status da Configuração -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="settings"></ion-icon>
+          Configurando {{ currentSession.deviceType }}
+        </ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <div class="config-info">
+          <p><strong>Chip:</strong> {{ currentSession.chipNumber }}</p>
+          <p><strong>Operadora:</strong> {{ currentSession.operator }}</p>
+          <p><strong>Status:</strong>
+            <ion-badge [color]="currentSession.status === 'COMPLETED' ? 'success' : currentSession.status === 'FAILED' ? 'danger' : 'warning'">
+              {{ currentSession.status === 'IN_PROGRESS' ? 'Em Andamento' :
+                 currentSession.status === 'COMPLETED' ? 'Concluído' : 'Falhou' }}
+            </ion-badge>
+          </p>
+        </div>
+
+        <!-- Barra de Progresso -->
+        <div class="progress-container">
+          <ion-text color="medium">
+            <small>Progresso: {{ (getProgressValue() * 100).toFixed(0) }}%</small>
+          </ion-text>
+          <ion-progress-bar [value]="getProgressValue()"></ion-progress-bar>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="action-buttons">
+          <ion-button
+            fill="outline"
+            size="small"
+            (click)="clearSession()"
+            [disabled]="isConfiguring">
+            <ion-icon name="trash" slot="start"></ion-icon>
+            Limpar
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Lista de Comandos -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Comandos SMS</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-list>
+          <ion-item-sliding *ngFor="let command of currentSession.commands; trackBy: trackByCommandType">
+            <ion-item>
+              <ion-icon
+                [name]="command.status === 'CONFIRMED' ? 'checkmark-circle' :
+                        command.status === 'FAILED' ? 'close-circle' :
+                        command.status === 'SENT' ? 'time' : 'time'"
+                [color]="getStatusColor(command.status)"
+                slot="start">
+              </ion-icon>
+              
+              <ion-label>
+                <h3>{{ getCommandTypeLabel(command.commandType) }}</h3>
+                <p>{{ command.command }}</p>
+                <ion-text [color]="getStatusColor(command.status)">
+                  <small>{{ getStatusLabel(command.status) }}</small>
+                </ion-text>
+                <div *ngIf="command.sentAt" class="timestamp">
+                  <ion-text color="medium">
+                    <small>Enviado: {{ command.sentAt | date:'dd/MM/yyyy HH:mm' }}</small>
+                  </ion-text>
+                </div>
+                <div *ngIf="command.confirmedAt" class="timestamp">
+                  <ion-text color="success">
+                    <small>Confirmado: {{ command.confirmedAt | date:'dd/MM/yyyy HH:mm' }}</small>
+                  </ion-text>
+                </div>
+              </ion-label>
+
+              <ion-badge [color]="getStatusColor(command.status)" slot="end">
+                {{ getStatusLabel(command.status) }}
+              </ion-badge>
+            </ion-item>
+
+            <ion-item-options side="end" *ngIf="command.status === 'FAILED'">
+              <ion-item-option color="warning" (click)="retryCommand(command)">
+                <ion-icon name="refresh" slot="icon-only"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </div>
 </ion-content>

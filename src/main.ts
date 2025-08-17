@@ -32,7 +32,13 @@ import {
   settings,
   person,
   refresh,
-  helpCircle
+  helpCircle,
+  phonePortrait,
+  send,
+  checkmarkCircle,
+  closeCircle,
+  time,
+  trash
 } from 'ionicons/icons';
 
 import { routes } from './app/app.routes';
@@ -57,7 +63,13 @@ addIcons({
   'settings': settings,
   'person': person,
   'refresh': refresh,
-  'help-circle': helpCircle
+  'help-circle': helpCircle,
+  'phone-portrait': phonePortrait,
+  'send': send,
+  'checkmark-circle': checkmarkCircle,
+  'close-circle': closeCircle,
+  'time': time,
+  'trash': trash
 });
 
 bootstrapApplication(AppComponent, {

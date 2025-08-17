@@ -1,0 +1,227 @@
+// Estilos para mensagens de erro
+.error-message {
+  font-size: 12px;
+  margin-top: -12px;
+  margin-bottom: 16px;
+  margin-left: 16px;
+  display: block;
+}
+
+// Container de informações da configuração
+.config-info {
+  margin-bottom: 16px;
+  
+  p {
+    margin: 8px 0;
+    font-size: 14px;
+    
+    strong {
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+// Container da barra de progresso
+.progress-container {
+  margin: 16px 0;
+  
+  ion-text {
+    display: block;
+    margin-bottom: 8px;
+  }
+  
+  ion-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+  }
+}
+
+// Botões de ação
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+// Botão de configuração
+.config-button {
+  --background: var(--ion-color-primary);
+  --color: white;
+  --border-radius: var(--fleet-border-radius);
+  height: 48px;
+  font-weight: 600;
+  margin-top: 16px;
+
+  &[disabled] {
+    --background: var(--ion-color-medium);
+    --color: var(--ion-color-medium-contrast);
+    opacity: 0.6;
+  }
+}
+
+// Estilos para os cards
+ion-card {
+  margin: 16px;
+  border-radius: var(--fleet-border-radius-lg);
+  box-shadow: var(--card-box-shadow);
+  
+  ion-card-header {
+    padding-bottom: 8px;
+    
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ion-color-primary);
+      
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+// Estilos para os itens da lista
+ion-item {
+  --background: transparent;
+  --border-radius: var(--fleet-border-radius);
+  --inner-padding-end: 16px;
+  --padding-start: 16px;
+  margin-bottom: 8px;
+  
+  &.ion-invalid {
+    --border-color: var(--ion-color-danger);
+    --border-width: 1px;
+    
+    ion-label {
+      color: var(--ion-color-danger);
+    }
+  }
+  
+  ion-label {
+    h3 {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--ion-color-dark);
+    }
+    
+    p {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      margin: 4px 0;
+      word-break: break-all;
+    }
+  }
+  
+  ion-icon[slot="start"] {
+    color: var(--ion-color-primary);
+    margin-right: 12px;
+    font-size: 20px;
+  }
+}
+
+// Timestamps
+.timestamp {
+  margin-top: 4px;
+  
+  ion-text small {
+    font-size: 11px;
+  }
+}
+
+// Badges de status
+ion-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+// Estilos para inputs com erro
+ion-input {
+  &.ion-invalid.ion-touched {
+    --color: var(--ion-color-danger);
+  }
+  
+  &.ion-valid.ion-touched {
+    --color: var(--ion-color-success);
+  }
+}
+
+// Estilos para select
+ion-select {
+  --placeholder-color: var(--ion-color-medium);
+}
+
+// Animações suaves
+ion-item,
+.error-message,
+ion-card {
+  transition: all 0.3s ease;
+}
+
+// Estados de foco
+ion-item:focus-within {
+  --border-color: var(--ion-color-primary);
+  --border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(52, 35, 204, 0.1);
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  ion-card {
+    margin: 8px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    
+    ion-button {
+      width: 100%;
+    }
+  }
+}
+
+// Estilos para item sliding
+ion-item-sliding {
+  ion-item-options {
+    ion-item-option {
+      --background: var(--ion-color-warning);
+      --color: white;
+    }
+  }
+}
+
+// Loading states
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+// Status específicos
+.status-pending {
+  color: var(--ion-color-medium);
+}
+
+.status-sent {
+  color: var(--ion-color-warning);
+}
+
+.status-confirmed {
+  color: var(--ion-color-success);
+}
+
+.status-failed {
+  color: var(--ion-color-danger);
+}
