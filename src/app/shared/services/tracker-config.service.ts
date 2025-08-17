@@ -1,14 +1,17 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { 
-  TrackerDevice, 
-  GT02DCommands, 
-  SMSCommand, 
-  ConfigurationSession, 
-  OPERATOR_CONFIGS, 
+import {
+  TrackerDevice,
+  GT02DCommands,
+  SMSCommand,
+  ConfigurationSession,
+  ConfigurationStep,
+  OPERATOR_CONFIGS,
   SERVER_CONFIG,
-  OperatorConfig 
+  CONFIGURATION_STEPS,
+  OperatorConfig
 } from '../models/tracker.models';
+import { TraccarService } from './traccar.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +20,7 @@ export class TrackerConfigService {
   private configurationSessionSubject = new BehaviorSubject<ConfigurationSession | null>(null);
   public configurationSession$ = this.configurationSessionSubject.asObservable();
 
-  constructor() {}
+  constructor(private traccarService: TraccarService) {}
 
   generateGT02DCommands(chipNumber: string, operator: 'VIVO' | 'CLARO'): GT02DCommands {
     const operatorConfig = OPERATOR_CONFIGS.find(op => op.name === operator);
@@ -87,6 +90,7 @@ export class TrackerConfigService {
 
   startConfiguration(device: TrackerDevice): ConfigurationSession {
     const commands = this.createSMSCommands(device);
+    const steps = this.createConfigurationSteps();
     
     const session: ConfigurationSession = {
       id: this.generateId(),
@@ -96,11 +100,56 @@ export class TrackerConfigService {
       operator: device.operator,
       status: 'IN_PROGRESS',
       commands: commands,
+      steps: steps,
+      firstPositionReceived: false,
       startedAt: new Date()
     };
 
+    // Iniciar primeiro step
+    this.updateStepStatus(session, 'Preparação', 'IN_PROGRESS');
+    
     this.configurationSessionSubject.next(session);
     return session;
+  }
+
+  private createConfigurationSteps(): ConfigurationStep[] {
+    return CONFIGURATION_STEPS.map(stepTemplate => ({
+      ...stepTemplate,
+      id: this.generateId(),
+      status: 'PENDING' as const
+    }));
+  }
+
+  updateStepStatus(session: ConfigurationSession, stepTitle: string, status: ConfigurationStep['status'], error?: string): void {
+    const step = session.steps.find(s => s.title === stepTitle);
+    if (step) {
+      step.status = status;
+      
+      if (status === 'IN_PROGRESS') {
+        step.startedAt = new Date();
+      } else if (status === 'COMPLETED' || status === 'FAILED') {
+        step.completedAt = new Date();
+        if (error) {
+          step.error = error;
+        }
+      }
+      
+      this.updateConfigurationSession();
+    }
+  }
+
+  getCurrentStep(session: ConfigurationSession): ConfigurationStep | null {
+    return session.steps.find(step => step.status === 'IN_PROGRESS') || null;
+  }
+
+  getNextStep(session: ConfigurationSession): ConfigurationStep | null {
+    const currentStep = this.getCurrentStep(session);
+    if (!currentStep) {
+      return session.steps.find(step => step.status === 'PENDING') || null;
+    }
+    
+    const nextOrder = currentStep.order + 1;
+    return session.steps.find(step => step.order === nextOrder) || null;
   }
 
   async sendSMSCommand(command: SMSCommand): Promise<boolean> {
@@ -125,10 +174,23 @@ export class TrackerConfigService {
   }
 
   async sendAllCommands(session: ConfigurationSession): Promise<void> {
+    // Atualizar step para comandos SMS
+    this.updateStepStatus(session, 'Preparação', 'COMPLETED');
+    this.updateStepStatus(session, 'Comandos SMS', 'IN_PROGRESS');
+    
     for (const command of session.commands) {
       await this.sendSMSCommand(command);
       // Aguardar um pouco entre os comandos
       await this.delay(2000);
+    }
+    
+    // Verificar se todos os comandos foram confirmados
+    const allConfirmed = session.commands.every(cmd => cmd.status === 'CONFIRMED');
+    if (allConfirmed) {
+      this.updateStepStatus(session, 'Comandos SMS', 'COMPLETED');
+      this.updateStepStatus(session, 'Cadastro Traccar', 'IN_PROGRESS');
+    } else {
+      this.updateStepStatus(session, 'Comandos SMS', 'FAILED', 'Alguns comandos SMS falharam');
     }
   }
 

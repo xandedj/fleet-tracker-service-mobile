@@ -34,15 +34,21 @@ import {
   closeCircle,
   time,
   refresh,
-  trash
+  trash,
+  list,
+  chatbubbles,
+  server,
+  location
 } from 'ionicons/icons';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { TrackerConfigService } from '../../shared/services/tracker-config.service';
 import {
   TrackerDevice,
   ConfigurationSession,
+  ConfigurationStep,
   SMSCommand,
-  OPERATOR_CONFIGS
+  OPERATOR_CONFIGS,
+  CONFIGURATION_STEPS
 } from '../../shared/models/tracker.models';
 
 @Component({
@@ -96,7 +102,11 @@ export class ConfigPage implements OnInit {
       closeCircle,
       time,
       refresh,
-      trash
+      trash,
+      list,
+      chatbubbles,
+      server,
+      location
     });
     this.initializeForm();
   }
@@ -310,5 +320,50 @@ export class ConfigPage implements OnInit {
 
   trackByCommandType(index: number, command: SMSCommand): string {
     return command.commandType;
+  }
+
+  // Métodos para Timeline
+  getConfigurationSteps(): ConfigurationStep[] {
+    if (this.currentSession) {
+      return this.currentSession.steps.sort((a, b) => a.order - b.order);
+    }
+    
+    // Retornar steps padrão se não houver sessão ativa
+    return CONFIGURATION_STEPS.map(stepTemplate => ({
+      ...stepTemplate,
+      id: '',
+      status: 'PENDING' as const
+    }));
+  }
+
+  getStepIcon(step: ConfigurationStep): string {
+    if (step.status === 'COMPLETED') {
+      return 'checkmark-circle';
+    } else if (step.status === 'FAILED') {
+      return 'close-circle';
+    } else if (step.status === 'IN_PROGRESS') {
+      return 'time';
+    }
+    return step.icon;
+  }
+
+  getStepColor(status: ConfigurationStep['status']): string {
+    const colors: { [key: string]: string } = {
+      'PENDING': 'medium',
+      'IN_PROGRESS': 'warning',
+      'COMPLETED': 'success',
+      'FAILED': 'danger'
+    };
+    return colors[status] || 'medium';
+  }
+
+  getStepStatusLabel(status: ConfigurationStep['status']): string {
+    const labels: { [key: string]: string } = {
+      'PENDING': 'Pendente',
+      'IN_PROGRESS': 'Em Andamento',
+      'COMPLETED': 'Concluído',
+      'FAILED': 'Falhou'
+    };
+    return labels[status] || status;
   }
 }

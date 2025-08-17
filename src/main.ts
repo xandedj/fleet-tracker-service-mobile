@@ -38,7 +38,11 @@ import {
   checkmarkCircle,
   closeCircle,
   time,
-  trash
+  trash,
+  list,
+  chatbubbles,
+  server,
+  location
 } from 'ionicons/icons';
 
 import { routes } from './app/app.routes';
@@ -69,7 +73,11 @@ addIcons({
   'checkmark-circle': checkmarkCircle,
   'close-circle': closeCircle,
   'time': time,
-  'trash': trash
+  'trash': trash,
+  'list': list,
+  'chatbubbles': chatbubbles,
+  'server': server,
+  'location': location
 });
 
 bootstrapApplication(AppComponent, {

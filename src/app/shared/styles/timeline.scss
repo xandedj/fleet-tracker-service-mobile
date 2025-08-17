@@ -1,0 +1,107 @@
+// Timeline Styles
+.timeline-container {
+  position: relative;
+  padding: 16px 0;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-left: 60px;
+  
+  &.active .timeline-marker {
+    background: var(--ion-color-warning);
+    border-color: var(--ion-color-warning);
+    animation: pulse 2s infinite;
+    ion-icon { color: white; }
+  }
+  
+  &.completed .timeline-marker {
+    background: var(--ion-color-success);
+    border-color: var(--ion-color-success);
+    ion-icon { color: white; }
+  }
+  
+  &.failed .timeline-marker {
+    background: var(--ion-color-danger);
+    border-color: var(--ion-color-danger);
+    ion-icon { color: white; }
+  }
+}
+
+.timeline-marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ion-color-light);
+  border: 3px solid var(--ion-color-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: all 0.3s ease;
+  
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.timeline-content {
+  flex: 1;
+  
+  h3 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ion-color-dark);
+  }
+  
+  p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: var(--ion-color-medium);
+    line-height: 1.4;
+  }
+}
+
+.timeline-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-time ion-text small,
+.timeline-error ion-text small {
+  font-size: 11px;
+}
+
+.timeline-line {
+  position: absolute;
+  left: 19px;
+  top: 40px;
+  bottom: -24px;
+  width: 2px;
+  background: var(--ion-color-light-shade);
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+@media (max-width: 768px) {
+  .timeline-item { padding-left: 50px; }
+  .timeline-marker { width: 32px; height: 32px; }
+  .timeline-marker ion-icon { font-size: 16px; }
+  .timeline-line { left: 15px; top: 32px; }
+  .timeline-content h3 { font-size: 14px; }
+  .timeline-content p { font-size: 13px; }
+}

@@ -71,6 +71,66 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- Timeline de Steps (sempre visível) -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="list"></ion-icon>
+        Steps de Configuração
+      </ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <div class="timeline-container">
+        <div
+          *ngFor="let step of getConfigurationSteps(); let i = index"
+          class="timeline-item"
+          [class.active]="step.status === 'IN_PROGRESS'"
+          [class.completed]="step.status === 'COMPLETED'"
+          [class.failed]="step.status === 'FAILED'">
+          
+          <div class="timeline-marker">
+            <ion-icon
+              [name]="getStepIcon(step)"
+              [color]="getStepColor(step.status)">
+            </ion-icon>
+          </div>
+          
+          <div class="timeline-content">
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
+            
+            <div class="timeline-status">
+              <ion-badge [color]="getStepColor(step.status)">
+                {{ getStepStatusLabel(step.status) }}
+              </ion-badge>
+              
+              <div *ngIf="step.startedAt" class="timeline-time">
+                <ion-text color="medium">
+                  <small>Iniciado: {{ step.startedAt | date:'HH:mm:ss' }}</small>
+                </ion-text>
+              </div>
+              
+              <div *ngIf="step.completedAt" class="timeline-time">
+                <ion-text [color]="step.status === 'COMPLETED' ? 'success' : 'danger'">
+                  <small>{{ step.status === 'COMPLETED' ? 'Concluído' : 'Falhou' }}: {{ step.completedAt | date:'HH:mm:ss' }}</small>
+                </ion-text>
+              </div>
+              
+              <div *ngIf="step.error" class="timeline-error">
+                <ion-text color="danger">
+                  <small>{{ step.error }}</small>
+                </ion-text>
+              </div>
+            </div>
+          </div>
+          
+          <div class="timeline-line" *ngIf="i < getConfigurationSteps().length - 1"></div>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
   <!-- Sessão de Configuração Ativa -->
   <div *ngIf="currentSession">
     <!-- Status da Configuração -->

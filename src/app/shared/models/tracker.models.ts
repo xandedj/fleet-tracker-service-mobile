@@ -40,6 +40,32 @@ export interface SMSCommand {
   response?: string;
 }
 
+export interface ConfigurationStep {
+  id: string;
+  title: string;
+  description: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  icon: string;
+  order: number;
+  startedAt?: Date;
+  completedAt?: Date;
+  error?: string;
+}
+
+export interface TraccarDevice {
+  id?: number;
+  name: string;
+  uniqueId: string;
+  status?: string;
+  lastUpdate?: Date;
+  positionId?: number;
+  groupId?: number;
+  phone?: string;
+  model?: string;
+  contact?: string;
+  category?: string;
+}
+
 export interface ConfigurationSession {
   id?: string;
   deviceId: string;
@@ -48,6 +74,9 @@ export interface ConfigurationSession {
   operator: 'VIVO' | 'CLARO';
   status: 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
   commands: SMSCommand[];
+  steps: ConfigurationStep[];
+  traccarDeviceId?: number;
+  firstPositionReceived?: boolean;
   startedAt: Date;
   completedAt?: Date;
 }
@@ -71,3 +100,36 @@ export const SERVER_CONFIG: ServerConfig = {
   ip: '51.222.16.164',
   port: 5023
 };
+
+export const CONFIGURATION_STEPS: Omit<ConfigurationStep, 'id' | 'status' | 'startedAt' | 'completedAt' | 'error'>[] = [
+  {
+    title: 'Preparação',
+    description: 'Validando dados e preparando configuração',
+    icon: 'settings',
+    order: 1
+  },
+  {
+    title: 'Comandos SMS',
+    description: 'Enviando comandos de configuração via SMS',
+    icon: 'chatbubbles',
+    order: 2
+  },
+  {
+    title: 'Cadastro Traccar',
+    description: 'Registrando dispositivo no servidor Traccar',
+    icon: 'server',
+    order: 3
+  },
+  {
+    title: 'Aguardando Conexão',
+    description: 'Esperando primeira posição do equipamento',
+    icon: 'location',
+    order: 4
+  },
+  {
+    title: 'Finalização',
+    description: 'Configuração concluída com sucesso',
+    icon: 'checkmark-circle',
+    order: 5
+  }
+];
