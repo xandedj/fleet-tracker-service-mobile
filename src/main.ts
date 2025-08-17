@@ -9,6 +9,8 @@ import {
   IonicRouteStrategy,
   provideIonicAngular,
 } from '@ionic/angular/standalone';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './app/shared/interceptors/auth.interceptor';
 
 // Importar ícones
 import { addIcons } from 'ionicons';
@@ -25,7 +27,12 @@ import {
   searchOutline,
   locationOutline,
   personCircleOutline,
-  personCircle
+  personCircle,
+  logOut,
+  settings,
+  person,
+  refresh,
+  helpCircle
 } from 'ionicons/icons';
 
 import { routes } from './app/app.routes';
@@ -45,7 +52,12 @@ addIcons({
   'search-outline': searchOutline,
   'location-outline': locationOutline,
   'person-circle-outline': personCircleOutline,
-  'person-circle': personCircle
+  'person-circle': personCircle,
+  'log-out': logOut,
+  'settings': settings,
+  'person': person,
+  'refresh': refresh,
+  'help-circle': helpCircle
 });
 
 bootstrapApplication(AppComponent, {
@@ -53,5 +65,6 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
+    provideHttpClient(withInterceptors([authInterceptor])),
   ],
 });

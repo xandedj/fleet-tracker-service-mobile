@@ -1,36 +1,61 @@
 <div class="form-container">
   <div class="title">{{ title }}</div>
   <div class="sub-title">{{ subTitle }}</div>
-  <form>
-    <!-- Seu código atual melhorado -->
-    <ion-item class="item-inner">
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <!-- Campo Email -->
+    <ion-item class="item-inner" [class.ion-invalid]="isFieldInvalid('email')">
       <ion-label position="floating">
         <ion-icon name="mail"></ion-icon>
         Email
       </ion-label>
-      <ion-input type="email" required></ion-input>
+      <ion-input
+        type="email"
+        formControlName="email"
+        [class.ion-invalid]="isFieldInvalid('email')"
+        [class.ion-touched]="loginForm.get('email')?.touched">
+      </ion-input>
     </ion-item>
+    <ion-text color="danger" *ngIf="isFieldInvalid('email')" class="error-message">
+      {{ getErrorMessage('email') }}
+    </ion-text>
 
-    <ion-item class="item-inner">
+    <!-- Campo Senha -->
+    <ion-item class="item-inner" [class.ion-invalid]="isFieldInvalid('password')">
       <ion-label position="floating">
         <ion-icon name="lock-closed"></ion-icon>
         Senha
       </ion-label>
-      <ion-input type="password" required>
-      <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+      <ion-input
+        type="password"
+        formControlName="password"
+        [class.ion-invalid]="isFieldInvalid('password')"
+        [class.ion-touched]="loginForm.get('password')?.touched">
+        <ion-input-password-toggle slot="end"></ion-input-password-toggle>
       </ion-input>
     </ion-item>
+    <ion-text color="danger" *ngIf="isFieldInvalid('password')" class="error-message">
+      {{ getErrorMessage('password') }}
+    </ion-text>
 
     <div class="options-container">
       <div class="remember-me-container">
-        <ion-toggle [(ngModel)]="rememberMe" name="rememberMe"></ion-toggle>
+        <ion-toggle formControlName="rememberMe"></ion-toggle>
         <span class="remember-label">Lembre-me</span>
       </div>
       <div class="forgot-password">
         <a class="forgot-link" href="#">Esqueceu a senha?</a>
       </div>
     </div>
-    <ion-button expand="block" type="submit">Entrar</ion-button>
+    
+    <ion-button
+      expand="block"
+      type="submit"
+      [disabled]="isLoading || loginForm.invalid"
+      class="login-button">
+      <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+      <span *ngIf="!isLoading">Entrar</span>
+      <span *ngIf="isLoading">Entrando...</span>
+    </ion-button>
   </form>
   
   <div class="footer">
