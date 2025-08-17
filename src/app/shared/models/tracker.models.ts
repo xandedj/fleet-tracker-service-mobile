@@ -38,6 +38,9 @@ export interface SMSCommand {
   sentAt?: Date;
   confirmedAt?: Date;
   response?: string;
+  phoneNumber?: string;
+  message?: string;
+  error?: string;
 }
 
 export interface ConfigurationStep {
@@ -72,7 +75,7 @@ export interface ConfigurationSession {
   chipNumber: string;
   deviceType: 'GT02D' | 'CRX3_MINI' | 'FMB125';
   operator: 'VIVO' | 'CLARO';
-  status: 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
   commands: SMSCommand[];
   steps: ConfigurationStep[];
   traccarDeviceId?: number;
@@ -84,7 +87,7 @@ export interface ConfigurationSession {
 export const OPERATOR_CONFIGS: OperatorConfig[] = [
   {
     name: 'VIVO',
-    apn: 'smat.m2m.vivo.com.br',
+    apn: 'smart.m2m.vivo.com.br',
     username: 'vivo',
     password: 'vivo'
   },

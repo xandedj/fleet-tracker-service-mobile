@@ -67,10 +67,41 @@ import { ConfigurationSession, ConfigurationStep, CONFIGURATION_STEPS } from '..
                 <ion-icon name="settings" slot="start"></ion-icon>
                 {{ isConfiguring ? 'Configurando...' : 'Iniciar Configuração' }}
               </ion-button>
+
+              <!-- Botão para reiniciar configuração após falha -->
+              <ion-button
+                *ngIf="showRetryButton"
+                expand="block"
+                color="warning"
+                (click)="retryConfiguration()"
+                class="retry-button">
+                <ion-icon name="refresh" slot="start"></ion-icon>
+                Tentar Novamente
+              </ion-button>
+
+              <!-- Botão para limpar sessão -->
+              <ion-button
+                *ngIf="currentSession && !isConfiguring"
+                expand="block"
+                fill="outline"
+                color="medium"
+                (click)="clearSession()"
+                class="clear-button">
+                <ion-icon name="trash" slot="start"></ion-icon>
+                Limpar Sessão
+              </ion-button>
             </form>
             
             <div *ngIf="message" class="message">
               <ion-text [color]="messageColor">{{ message }}</ion-text>
+            </div>
+
+            <!-- Detalhes das falhas -->
+            <div *ngIf="failureDetails.length > 0" class="failure-details">
+              <h4>Detalhes das Falhas:</h4>
+              <ul>
+                <li *ngFor="let failure of failureDetails">{{ failure }}</li>
+              </ul>
             </div>
           </ion-card-content>
         </ion-card>
@@ -237,6 +268,8 @@ export class ConfigSimplePage implements OnInit {
   isConfiguring = false;
   currentSession: ConfigurationSession | null = null;
   configurationSteps: ConfigurationStep[] = [];
+  showRetryButton = false;
+  failureDetails: string[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -254,9 +287,24 @@ export class ConfigSimplePage implements OnInit {
     this.trackerConfigService.configurationSession$.subscribe(session => {
       this.currentSession = session;
       this.isConfiguring = session?.status === 'IN_PROGRESS';
+      
       if (session) {
         this.showTimeline = true;
         this.configurationSteps = session.steps;
+        
+        // Verificar se há falhas
+        if (session.status === 'FAILED') {
+          this.showRetryButton = true;
+          this.isConfiguring = false;
+          this.failureDetails = this.trackerConfigService.getFailureDetails(session);
+          this.message = `Configuração falhou. ${this.failureDetails.length} erro(s) encontrado(s).`;
+          this.messageColor = 'danger';
+        } else if (session.status === 'COMPLETED') {
+          this.showRetryButton = false;
+          this.failureDetails = [];
+          this.message = 'Configuração concluída com sucesso!';
+          this.messageColor = 'success';
+        }
       }
     });
   }
@@ -303,12 +351,55 @@ export class ConfigSimplePage implements OnInit {
         console.error('Erro na configuração:', error);
         this.message = 'Erro ao iniciar configuração. Tente novamente.';
         this.messageColor = 'danger';
+        this.isConfiguring = false;
       }
       
     } else {
       this.message = 'Por favor, preencha todos os campos corretamente.';
       this.messageColor = 'danger';
     }
+  }
+
+  retryConfiguration(): void {
+    if (this.currentSession) {
+      console.log('Reiniciando configuração após falha...');
+      
+      // Resetar sessão falhada
+      this.trackerConfigService.resetFailedSession(this.currentSession);
+      
+      // Limpar estado da UI
+      this.showRetryButton = false;
+      this.failureDetails = [];
+      this.message = 'Reiniciando configuração...';
+      this.messageColor = 'primary';
+      this.isConfiguring = true;
+      
+      // Reenviar comandos
+      setTimeout(() => {
+        this.trackerConfigService.sendAllCommands(this.currentSession!);
+      }, 1000);
+    }
+  }
+
+  clearSession(): void {
+    console.log('Limpando sessão de configuração...');
+    
+    // Resetar estado
+    this.currentSession = null;
+    this.showTimeline = false;
+    this.isConfiguring = false;
+    this.showRetryButton = false;
+    this.failureDetails = [];
+    this.message = '';
+    
+    // Resetar formulário
+    this.configForm.reset({
+      deviceType: 'GT02D',
+      operator: 'VIVO'
+    });
+    
+    // Limpar sessão no serviço
+    this.trackerConfigService.clearSession();
   }
 
   getConfigurationSteps(): ConfigurationStep[] {
