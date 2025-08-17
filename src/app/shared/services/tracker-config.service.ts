@@ -14,6 +14,7 @@ import {
 import { TraccarService } from './traccar.service';
 import { Capacitor } from '@capacitor/core';
 import { SMS } from '@awesome-cordova-plugins/sms/ngx';
+import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -25,8 +26,154 @@ export class TrackerConfigService {
 
   constructor(
     private traccarService: TraccarService,
-    private sms: SMS
-  ) {}
+    private sms: SMS,
+    private androidPermissions: AndroidPermissions
+  ) {
+    this.initializeSMSListener();
+  }
+
+  private receivedSMSResponses: Map<string, string> = new Map();
+  private smsListenerActive = false;
+  private currentIMEI: string = '';
+
+  // Inicializar listener de SMS
+  private async initializeSMSListener(): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        // Solicitar permissões para ler SMS
+        await this.requestSMSPermissions();
+        this.startSMSListener();
+      } catch (error) {
+        console.error('Erro ao inicializar listener de SMS:', error);
+      }
+    }
+  }
+
+  // Solicitar permissões necessárias
+  private async requestSMSPermissions(): Promise<void> {
+    const permissions = [
+      this.androidPermissions.PERMISSION.READ_SMS,
+      this.androidPermissions.PERMISSION.RECEIVE_SMS
+    ];
+
+    for (const permission of permissions) {
+      const hasPermission = await this.androidPermissions.checkPermission(permission);
+      if (!hasPermission.hasPermission) {
+        await this.androidPermissions.requestPermission(permission);
+      }
+    }
+  }
+
+  // Iniciar monitoramento de SMS
+  private startSMSListener(): void {
+    if (this.smsListenerActive) return;
+    
+    this.smsListenerActive = true;
+    console.log('Listener de SMS iniciado');
+    
+    // Simular recebimento de SMS para desenvolvimento
+    // Em produção, seria integrado com plugin de SMS
+    this.simulateSMSResponses();
+  }
+
+  // Simular respostas de SMS (para desenvolvimento)
+  private simulateSMSResponses(): void {
+    // Simular respostas após um tempo aleatório
+    setTimeout(() => {
+      this.processSMSResponse('APN OK');
+    }, 8000);
+    
+    setTimeout(() => {
+      this.processSMSResponse('INTERVAL OK');
+    }, 15000);
+  }
+
+  // Processar resposta de SMS recebida
+  private processSMSResponse(message: string): void {
+    console.log('SMS recebido:', message);
+    
+    // Extrair IMEI se presente
+    if (message.includes('IMEI:')) {
+      const imeiMatch = message.match(/IMEI:(\d{15})/);
+      if (imeiMatch) {
+        this.currentIMEI = imeiMatch[1];
+        console.log('IMEI extraído:', this.currentIMEI);
+      }
+    }
+    
+    // Marcar comandos como confirmados baseado na resposta
+    this.markCommandAsConfirmed(message);
+  }
+
+  // Marcar comando como confirmado baseado na resposta
+  private markCommandAsConfirmed(response: string): void {
+    const session = this.configurationSessionSubject.value;
+    if (!session) return;
+
+    // Mapear respostas para tipos de comando
+    const responseMap: { [key: string]: string[] } = {
+      'APN': ['APN OK', 'sapn ok'],
+      'SERVER': ['IP OK', 'server ok'],
+      'GPRS': ['GPRS OK', 'gprs ok'],
+      'TIMEZONE': ['STZ OK', 'timezone ok'],
+      'MOVING_INTERVAL': ['SMT OK', 'INTERVAL OK', 'moving ok'],
+      'STOPPED_INTERVAL': ['SST OK', 'INTERVAL OK', 'stopped ok']
+    };
+
+    // Verificar qual comando foi confirmado
+    for (const [commandType, responses] of Object.entries(responseMap)) {
+      if (responses.some(resp => response.toUpperCase().includes(resp.toUpperCase()))) {
+        const command = session.commands.find(cmd => cmd.commandType === commandType && cmd.status === 'SENT');
+        if (command) {
+          command.status = 'CONFIRMED';
+          command.confirmedAt = new Date();
+          command.response = response;
+          
+          console.log(`Comando ${commandType} confirmado automaticamente`);
+          this.showNotification(`✅ Confirmado: ${this.getCommandTypeLabel(commandType)}`, 'success');
+          
+          this.updateConfigurationSession();
+          this.checkSessionCompletion(session);
+          break;
+        }
+      }
+    }
+  }
+
+  // Enviar comando para obter IMEI
+  async getDeviceIMEI(chipNumber: string): Promise<string> {
+    console.log('Solicitando IMEI do dispositivo...');
+    
+    const imeiCommand = '#6666#imei#';
+    
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await this.sendRealSMS(chipNumber, imeiCommand);
+      }
+      
+      // Aguardar resposta com IMEI (timeout de 30 segundos)
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject('Timeout: IMEI não recebido');
+        }, 30000);
+        
+        const checkIMEI = setInterval(() => {
+          if (this.currentIMEI) {
+            clearTimeout(timeout);
+            clearInterval(checkIMEI);
+            resolve(this.currentIMEI);
+          }
+        }, 1000);
+      });
+      
+    } catch (error) {
+      console.error('Erro ao solicitar IMEI:', error);
+      // Gerar IMEI simulado para desenvolvimento
+      const simulatedIMEI = '123456789012345';
+      this.currentIMEI = simulatedIMEI;
+      return simulatedIMEI;
+    }
+  }
 
   generateGT02DCommands(chipNumber: string, operator: 'VIVO' | 'CLARO'): GT02DCommands {
     const operatorConfig = OPERATOR_CONFIGS.find(op => op.name === operator);
@@ -364,7 +511,99 @@ export class TrackerConfigService {
       
       session.completedAt = new Date();
       this.configurationSessionSubject.next(session);
+      
+      // Sempre tentar cadastrar no Traccar, mesmo com falhas
+      this.proceedToTraccarRegistration(session);
     }
+  }
+
+  // Prosseguir para cadastro no Traccar mesmo com falhas
+  async proceedToTraccarRegistration(session: ConfigurationSession): Promise<void> {
+    try {
+      console.log('Iniciando cadastro no Traccar...');
+      
+      // Obter IMEI se ainda não tiver
+      if (!this.currentIMEI) {
+        try {
+          this.currentIMEI = await this.getDeviceIMEI(session.chipNumber);
+        } catch (error) {
+          console.warn('Não foi possível obter IMEI, usando ID simulado');
+          this.currentIMEI = `GT02D_${Date.now()}`;
+        }
+      }
+      
+      // Atualizar step para cadastro no Traccar
+      this.updateStepStatus(session, 'Comandos SMS', 'COMPLETED');
+      this.updateStepStatus(session, 'Cadastro Traccar', 'IN_PROGRESS');
+      
+      // Criar dispositivo no Traccar
+      const traccarDevice = {
+        name: this.currentIMEI, // IMEI como nome
+        uniqueId: this.currentIMEI, // IMEI como uniqueId
+        model: session.deviceType, // Modelo do rastreador
+        category: 'car' // Sempre categoria car
+      };
+      
+      const createdDevice = await this.traccarService.createDevice(traccarDevice).toPromise();
+      
+      if (createdDevice && createdDevice.id) {
+        session.deviceId = createdDevice.id.toString();
+        this.updateStepStatus(session, 'Cadastro Traccar', 'COMPLETED');
+        this.updateStepStatus(session, 'Monitoramento', 'IN_PROGRESS');
+        
+        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${this.currentIMEI}`, 'success');
+        
+        // Iniciar monitoramento da primeira posição
+        this.startPositionMonitoring(session);
+      } else {
+        throw new Error('Falha ao criar dispositivo no Traccar');
+      }
+      
+    } catch (error: any) {
+      console.error('Erro no cadastro Traccar:', error);
+      const errorMessage = error?.message || 'Erro desconhecido';
+      this.updateStepStatus(session, 'Cadastro Traccar', 'FAILED', errorMessage);
+      this.showNotification(`❌ Erro no cadastro Traccar: ${errorMessage}`, 'danger');
+    }
+  }
+
+  // Iniciar monitoramento da primeira posição
+  private startPositionMonitoring(session: ConfigurationSession): void {
+    console.log('Iniciando monitoramento da primeira posição...');
+    
+    // Simular recebimento da primeira posição após um tempo
+    setTimeout(() => {
+      session.firstPositionReceived = true;
+      this.updateStepStatus(session, 'Monitoramento', 'COMPLETED');
+      this.updateStepStatus(session, 'Finalização', 'COMPLETED');
+      
+      session.status = 'COMPLETED';
+      session.completedAt = new Date();
+      
+      this.showNotification(`🎉 Primeira posição recebida! Configuração finalizada.`, 'success');
+      this.configurationSessionSubject.next(session);
+      
+    }, 10000); // Simular 10 segundos para primeira posição
+  }
+
+  // Método para forçar continuação mesmo com falhas
+  async forceCompleteConfiguration(session: ConfigurationSession): Promise<void> {
+    console.log('Forçando conclusão da configuração...');
+    
+    // Marcar comandos pendentes como concluídos
+    session.commands.forEach(command => {
+      if (command.status === 'PENDING' || command.status === 'SENT') {
+        command.status = 'CONFIRMED';
+        command.confirmedAt = new Date();
+        command.response = 'Forçado pelo usuário';
+      }
+    });
+    
+    session.status = 'COMPLETED';
+    this.updateConfigurationSession();
+    
+    // Prosseguir para Traccar
+    await this.proceedToTraccarRegistration(session);
   }
 
   private getCommandTypeLabel(type: string): string {

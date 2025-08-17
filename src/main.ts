@@ -56,6 +56,7 @@ import {
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 import { SMS } from '@awesome-cordova-plugins/sms/ngx';
+import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
 
 // Registrar os ícones
 addIcons({
@@ -103,6 +104,7 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withInterceptors([authInterceptor])),
-    SMS
+    SMS,
+    AndroidPermissions
   ],
 });

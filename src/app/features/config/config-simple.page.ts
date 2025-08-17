@@ -79,6 +79,17 @@ import { ConfigurationSession, ConfigurationStep, CONFIGURATION_STEPS } from '..
                 Tentar Novamente
               </ion-button>
 
+              <!-- Botão para continuar mesmo com falhas -->
+              <ion-button
+                *ngIf="showRetryButton"
+                expand="block"
+                color="success"
+                (click)="forceComplete()"
+                class="force-complete-button">
+                <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+                Continuar Mesmo com Falhas
+              </ion-button>
+
               <!-- Botão para limpar sessão -->
               <ion-button
                 *ngIf="currentSession && !isConfiguring"
@@ -400,6 +411,21 @@ export class ConfigSimplePage implements OnInit {
     
     // Limpar sessão no serviço
     this.trackerConfigService.clearSession();
+  }
+
+  forceComplete(): void {
+    if (this.currentSession) {
+      console.log('Forçando conclusão da configuração...');
+      
+      // Usar método do serviço para forçar conclusão
+      this.trackerConfigService.forceCompleteConfiguration(this.currentSession);
+      
+      // Limpar estado da UI
+      this.showRetryButton = false;
+      this.failureDetails = [];
+      this.message = 'Prosseguindo para cadastro no Traccar...';
+      this.messageColor = 'success';
+    }
   }
 
   getConfigurationSteps(): ConfigurationStep[] {
