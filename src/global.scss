@@ -1,0 +1,123 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import '@ionic/angular/css/palettes/dark.system.css';
+
+/* Importar Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ===== ESTILOS GLOBAIS PARA GESTÃO DE FROTAS ===== */
+
+* {
+  font-family: var(--ion-font-family);
+}
+
+/* Classes utilitárias para espaçamento */
+.fleet-p-xs { padding: var(--fleet-spacing-xs) !important; }
+.fleet-p-sm { padding: var(--fleet-spacing-sm) !important; }
+.fleet-p-md { padding: var(--fleet-spacing-md) !important; }
+.fleet-p-lg { padding: var(--fleet-spacing-lg) !important; }
+
+/* Cards customizados para dados de frota */
+.fleet-card {
+  border-radius: var(--fleet-border-radius-lg);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin: var(--fleet-spacing-md);
+  
+  &.fleet-card--status {
+    border-left: 4px solid var(--ion-color-primary);
+    
+    &.online { border-left-color: var(--ion-color-online); }
+    &.offline { border-left-color: var(--ion-color-offline); }
+    &.idle { border-left-color: var(--ion-color-idle); }
+  }
+}
+
+/* Badges de status para veículos */
+.fleet-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  
+  &.online {
+    background-color: rgba(var(--ion-color-online-rgb), 0.1);
+    color: var(--ion-color-online);
+  }
+  
+  &.offline {
+    background-color: rgba(var(--ion-color-offline-rgb), 0.1);
+    color: var(--ion-color-offline);
+  }
+  
+  &.idle {
+    background-color: rgba(var(--ion-color-idle-rgb), 0.1);
+    color: var(--ion-color-idle);
+  }
+  
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 4px;
+    background-color: currentColor;
+  }
+}
+
+/* Métricas e KPIs */
+.fleet-metric {
+  text-align: center;
+  padding: var(--fleet-spacing-md);
+  
+  &__value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    display: block;
+  }
+  
+  &__label {
+    font-size: 0.875rem;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: var(--fleet-spacing-xs);
+  }
+}

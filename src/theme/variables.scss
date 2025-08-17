@@ -1,0 +1,95 @@
+// For information on how to create your own theme, please see:
+// http://ionicframework.com/docs/theming/
+// Paleta de cores para gestão de frotas
+:root {
+  // Cores primárias - Azul corporativo
+  --ion-color-primary: #3423cc;
+  --ion-color-primary-rgb: 37, 99, 235;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #2152cc;
+  --ion-color-primary-tint: #3b73ed;
+
+  // Cores customizadas para status de veículos
+  --ion-color-online: #22c55e;
+  --ion-color-online-rgb: 34, 197, 94;
+  --ion-color-online-contrast: #ffffff;
+  --ion-color-online-contrast-rgb: 255, 255, 255;
+  --ion-color-online-shade: #1eae53;
+  --ion-color-online-tint: #38cc6e;
+
+  --ion-color-offline: #ef4444;
+  --ion-color-offline-rgb: 239, 68, 68;
+  --ion-color-offline-contrast: #ffffff;
+  --ion-color-offline-contrast-rgb: 255, 255, 255;
+  --ion-color-offline-shade: #d23c3c;
+  --ion-color-offline-tint: #f15757;
+
+  --ion-color-idle: #f59e0b;
+  --ion-color-idle-rgb: 245, 158, 11;
+  --ion-color-idle-contrast: #ffffff;
+  --ion-color-idle-contrast-rgb: 255, 255, 255;
+  --ion-color-idle-shade: #d8890a;
+  --ion-color-idle-tint: #f6a823;
+
+  --ion-color-light: #f4f5f8;
+  --ion-color-light-rgb: 244, 245, 248;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #d1d3d8;
+  --ion-color-light-tint: #f6f7fa;
+    --ion-color-medium-shade: #8d8e8e;
+  --ion-color-medium-tint: #828282;
+
+  // Tipografia e espaçamentos
+  --ion-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --fleet-spacing-xs: 4px;
+  --fleet-spacing-sm: 8px;
+  --fleet-spacing-md: 16px;
+  --fleet-spacing-lg: 24px;
+  --fleet-spacing-xl: 32px;
+  --fleet-border-radius: 8px;
+  --fleet-border-radius-lg: 12px;
+  --fleet-border-radius-top-lg: 25px 25px 0px 0px;
+  --fleet-border-radius-bottom-lg: 0px 0px 25px 25px;
+  --card-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --card-box-shadow-top: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+// Classes para cores customizadas
+.ion-color-online {
+  --ion-color-base: var(--ion-color-online);
+  --ion-color-base-rgb: var(--ion-color-online-rgb);
+  --ion-color-contrast: var(--ion-color-online-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-online-contrast-rgb);
+  --ion-color-shade: var(--ion-color-online-shade);
+  --ion-color-tint: var(--ion-color-online-tint);
+}
+
+.ion-color-offline {
+  --ion-color-base: var(--ion-color-offline);
+  --ion-color-base-rgb: var(--ion-color-offline-rgb);
+  --ion-color-contrast: var(--ion-color-offline-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-offline-contrast-rgb);
+  --ion-color-shade: var(--ion-color-offline-shade);
+  --ion-color-tint: var(--ion-color-offline-tint);
+}
+
+.ion-color-idle {
+  --ion-color-base: var(--ion-color-idle);
+  --ion-color-base-rgb: var(--ion-color-idle-rgb);
+  --ion-color-contrast: var(--ion-color-idle-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-idle-contrast-rgb);
+  --ion-color-shade: var(--ion-color-idle-shade);
+  --ion-color-tint: var(--ion-color-idle-tint);
+}
+
+.ion-theme-secundary {
+  --ion-color-base: var(--ion-color-medium);
+  --ion-color-base-rgb: var(--ion-color-medium-rgb);
+  --ion-color-contrast: var(--ion-color-medium-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-medium-contrast-rgb);
+  --ion-color-shade: var(--ion-color-medium-shade);
+  --ion-color-tint: var(--ion-color-medium-tint);
+}

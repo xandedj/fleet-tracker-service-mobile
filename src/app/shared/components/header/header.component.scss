@@ -1,0 +1,12 @@
+ion-toolbar {
+  --background: transparent;
+  --box-shadow: none;
+  ion-icon{
+    color: white;
+  }
+}
+
+ion-content {
+  --background: var(--ion-color-primary);
+  padding: 0;
+}
