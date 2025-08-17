@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
   IonApp,
@@ -37,6 +37,9 @@ import {
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/auth.models';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { NavigationCarouselComponent } from '../navigation-carousel/navigation-carousel.component';
 
 interface MenuItem {
   title: string;
@@ -53,28 +56,23 @@ interface MenuItem {
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     IonApp,
-    IonSplitPane,
-    IonMenu,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    IonList,
-    IonItem,
     IonIcon,
-    IonLabel,
     IonRouterOutlet,
-    IonFooter,
-    IonTabBar,
-    IonTabButton,
     IonButtons,
-    IonButton
+    IonButton,
+    NavigationCarouselComponent
   ]
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   selectedPath = '/dashboard';
+  private subscriptions = new Subscription();
 
   menuItems: MenuItem[] = [
     {
@@ -121,20 +119,42 @@ export class MainLayoutComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.authService.authState$.subscribe(authState => {
+    // Subscrever ao estado de autenticação
+    const authSub = this.authService.authState$.subscribe(authState => {
       this.currentUser = authState.user;
     });
+    this.subscriptions.add(authSub);
 
-    // Monitorar mudanças de rota
-    this.router.events.subscribe(() => {
-      this.selectedPath = this.router.url;
-    });
+    // Monitorar mudanças de rota - apenas NavigationEnd
+    const routerSub = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.selectedPath = event.urlAfterRedirects || event.url;
+      });
+    this.subscriptions.add(routerSub);
+
+    // Definir rota inicial
+    this.selectedPath = this.router.url;
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   navigateTo(url: string) {
-    this.selectedPath = url;
-    this.router.navigate([url]);
-    this.menuController.close('main-menu');
+    console.log('Navegando para:', url);
+    
+    // Navegar primeiro, depois fechar o menu
+    this.router.navigate([url]).then(() => {
+      console.log('Navegação concluída para:', url);
+      this.selectedPath = url;
+      // Fechar o menu após navegação bem-sucedida
+      this.menuController.close('main-menu').catch(error => {
+        console.error('Erro ao fechar menu:', error);
+      });
+    }).catch(error => {
+      console.error('Erro na navegação:', error);
+    });
   }
 
   isActive(url: string): boolean {
@@ -150,22 +170,38 @@ export class MainLayoutComponent implements OnInit {
   }
 
   logout() {
-    this.authService.logout();
-    this.menuController.close('main-menu');
+    console.log('Fazendo logout...');
+    this.menuController.close('main-menu').then(() => {
+      this.authService.logout();
+    }).catch(() => {
+      // Fazer logout mesmo se o menu não fechar
+      this.authService.logout();
+    });
   }
 
   openProfile() {
-    // Implementar navegação para perfil
-    console.log('Abrir perfil');
-    this.menuController.close('main-menu');
+    console.log('Abrindo perfil...');
+    this.menuController.close('main-menu').then(() => {
+      // Implementar navegação para perfil
+      console.log('Perfil aberto');
+    });
   }
 
-  async toggleMenu() {
-    const isOpen = await this.menuController.isOpen('main-menu');
-    if (isOpen) {
-      this.menuController.close('main-menu');
-    } else {
-      this.menuController.open('main-menu');
-    }
+  closeMenu() {
+    console.log('Fechando menu...');
+    this.menuController.close('main-menu').catch(error => {
+      console.error('Erro ao fechar menu:', error);
+    });
+  }
+
+  toggleMenu() {
+    console.log('Alternando menu...');
+    this.menuController.toggle('main-menu').catch(error => {
+      console.error('Erro ao alternar menu:', error);
+      // Fallback: tentar abrir diretamente
+      this.menuController.open('main-menu').catch(err => {
+        console.error('Erro ao abrir menu:', err);
+      });
+    });
   }
 }

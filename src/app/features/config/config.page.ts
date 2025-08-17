@@ -92,6 +92,7 @@ export class ConfigPage implements OnInit {
     private toastController: ToastController,
     private alertController: AlertController
   ) {
+    console.log('ConfigPage constructor iniciado');
     addIcons({
       phonePortrait,
       settings,
@@ -110,10 +111,16 @@ export class ConfigPage implements OnInit {
   }
 
   ngOnInit() {
-    this.trackerConfigService.configurationSession$.subscribe(session => {
-      this.currentSession = session;
-      this.isConfiguring = session?.status === 'IN_PROGRESS';
-    });
+    console.log('ConfigPage ngOnInit iniciado');
+    try {
+      this.trackerConfigService.configurationSession$.subscribe(session => {
+        this.currentSession = session;
+        this.isConfiguring = session?.status === 'IN_PROGRESS';
+        console.log('Session atualizada:', session);
+      });
+    } catch (error) {
+      console.error('Erro no ngOnInit:', error);
+    }
   }
 
   private initializeForm(): void {

@@ -1,0 +1,36 @@
+<div class="navigation-carousel">
+  <div class="carousel-container">
+    <div class="navigation-items">
+      <a
+        *ngFor="let item of navigationItems; trackBy: trackByUrl"
+        [routerLink]="item.url"
+        routerLinkActive="active"
+        class="nav-item"
+        [class.active]="isActive(item.url)">
+        
+        <!-- Círculo com ícone -->
+        <div class="nav-circle" [class.active]="isActive(item.url)">
+          <ion-icon
+            [name]="getIcon(item)"
+            [color]="getColor(item)"
+            size="large">
+          </ion-icon>
+        </div>
+        
+        <!-- Label -->
+        <ion-label
+          class="nav-label"
+          [color]="getColor(item)">
+          {{ item.title }}
+        </ion-label>
+        
+        <!-- Indicador ativo -->
+        <div
+          class="active-indicator"
+          [class.show]="isActive(item.url)"
+          [style.background-color]="'var(--ion-color-' + item.color + ')'">
+        </div>
+      </a>
+    </div>
+  </div>
+</div>

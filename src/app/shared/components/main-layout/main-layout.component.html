@@ -1,99 +1,29 @@
 <ion-app>
-  <ion-split-pane contentId="main-content" when="lg">
-    <!-- Side Menu -->
-    <ion-menu menuId="main-menu" contentId="main-content" type="overlay">
-      <ion-header>
-        <ion-toolbar color="primary">
-          <ion-title>Fleet Tracker</ion-title>
-        </ion-toolbar>
-      </ion-header>
-      
-      <ion-content>
-        <!-- User Info -->
-        <div class="user-info" *ngIf="currentUser">
-          <div class="user-avatar">
-            <ion-icon name="person" size="large"></ion-icon>
-          </div>
-          <div class="user-details">
-            <h3>{{ currentUser.name }}</h3>
-            <p>{{ currentUser.email }}</p>
-          </div>
-        </div>
+  <div class="ion-page">
+    <!-- Header -->
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>
+          <img src="assets/img/logos/logo_service_top_branca.svg" alt="Fleet Tracker" class="header-logo">
+        </ion-title>
         
-        <!-- Menu Items -->
-        <ion-list>
-          <ion-item 
-            *ngFor="let item of menuItems" 
-            button 
-            (click)="navigateTo(item.url)"
-            [class.active-item]="isActive(item.url)">
-            <ion-icon 
-              [name]="getIcon(item)" 
-              [color]="getColor(item)" 
-              slot="start">
-            </ion-icon>
-            <ion-label [color]="getColor(item)">{{ item.title }}</ion-label>
-          </ion-item>
-        </ion-list>
-        
-        <!-- Menu Footer -->
-        <div class="menu-footer">
-          <ion-item button (click)="openProfile()">
-            <ion-icon name="person-outline" color="medium" slot="start"></ion-icon>
-            <ion-label color="medium">Perfil</ion-label>
-          </ion-item>
-          
-          <ion-item button (click)="logout()">
-            <ion-icon name="log-out-outline" color="danger" slot="start"></ion-icon>
-            <ion-label color="danger">Sair</ion-label>
-          </ion-item>
-        </div>
-      </ion-content>
-    </ion-menu>
-
-    <!-- Main Content -->
-    <div class="ion-page" id="main-content">
-      <!-- Header with Menu Button -->
-      <ion-header>
-        <ion-toolbar color="primary">
-          <ion-buttons slot="start">
-            <ion-button (click)="toggleMenu()">
-              <ion-icon name="menu-outline" color="light"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-          
-          <ion-title>
-            <img src="assets/img/logos/logo_service_top_branca.svg" alt="Fleet Tracker" class="header-logo">
-          </ion-title>
-          
-          <ion-buttons slot="end">
-            <ion-button (click)="openProfile()" *ngIf="currentUser">
-              <ion-icon name="person-circle" color="light"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      
-      <!-- Page Content -->
-      <ion-content>
-        <ion-router-outlet></ion-router-outlet>
-      </ion-content>
-      
-      <!-- Bottom Navigation -->
-      <ion-footer>
-        <ion-tab-bar class="bottom-nav">
-          <ion-tab-button 
-            *ngFor="let item of menuItems" 
-            (click)="navigateTo(item.url)"
-            [class.tab-selected]="isActive(item.url)">
-            <ion-icon 
-              [name]="getIcon(item)" 
-              [color]="getColor(item)">
-            </ion-icon>
-            <ion-label [color]="getColor(item)">{{ item.title }}</ion-label>
-          </ion-tab-button>
-        </ion-tab-bar>
-      </ion-footer>
-    </div>
-  </ion-split-pane>
+        <ion-buttons slot="end">
+          <ion-button (click)="openProfile()" *ngIf="currentUser">
+            <ion-icon name="person-circle" color="light"></ion-icon>
+          </ion-button>
+          <ion-button (click)="logout()" *ngIf="currentUser">
+            <ion-icon name="log-out-outline" color="light"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    
+    <!-- Navigation Carousel -->
+    <app-navigation-carousel></app-navigation-carousel>
+    
+    <!-- Page Content -->
+    <ion-content>
+      <ion-router-outlet></ion-router-outlet>
+    </ion-content>
+  </div>
 </ion-app>
