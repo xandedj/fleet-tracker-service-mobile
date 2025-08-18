@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { Capacitor } from '@capacitor/core';
 import { environment } from '../../../environments/environment';
 import { TraccarDevice } from '../models/tracker.models';
 
@@ -38,13 +39,22 @@ export interface TraccarEvent {
   providedIn: 'root',
 })
 export class TraccarService {
-  private readonly traccarUrl = environment.urlTraccar;
+  private readonly traccarUrl = this.getTraccarUrl();
 
   private websocket: WebSocket | null = null;
   private devicePositionsSubject = new BehaviorSubject<TraccarPosition[]>([]);
   public devicePositions$ = this.devicePositionsSubject.asObservable();
 
   constructor(private http: HttpClient) {}
+
+  private getTraccarUrl(): string {
+    // No dispositivo móvel, usar URL direta HTTP
+    if (Capacitor.isNativePlatform()) {
+      return 'http://51.222.16.164:8082/api';
+    }
+    // No navegador, usar proxy para evitar Mixed Content
+    return environment.urlTraccar;
+  }
 
   private getAuthHeaders(): HttpHeaders {
     return new HttpHeaders({

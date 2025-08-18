@@ -1,0 +1,11 @@
+{
+  "/traccar/*": {
+    "target": "http://51.222.16.164:8082",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/traccar": ""
+    }
+  }
+}

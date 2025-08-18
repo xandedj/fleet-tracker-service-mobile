@@ -144,7 +144,7 @@ export class TrackerConfigService {
   async getDeviceIMEI(chipNumber: string): Promise<string> {
     console.log('Solicitando IMEI do dispositivo...');
     
-    const imeiCommand = '#6666#imei#';
+    const imeiCommand = '#6666#vinfo#';
     
     try {
       if (Capacitor.isNativePlatform()) {
