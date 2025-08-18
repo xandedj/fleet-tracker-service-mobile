@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   IonContent,
   IonCard,
@@ -34,6 +35,24 @@ import { ConfigurationSession, ConfigurationStep, CONFIGURATION_STEPS } from '..
           
           <ion-card-content>
             <form [formGroup]="configForm" (ngSubmit)="onSubmit()">
+              <!-- Campo IMEI com botão de scanner -->
+              <ion-item>
+                <ion-label position="stacked">IMEI do Dispositivo</ion-label>
+                <ion-input
+                  formControlName="imei"
+                  type="text"
+                  placeholder="Digite ou escaneie o IMEI"
+                  maxlength="15">
+                </ion-input>
+                <ion-button
+                  slot="end"
+                  fill="clear"
+                  (click)="openScanner()"
+                  [disabled]="isConfiguring">
+                  <ion-icon name="qr-code-outline"></ion-icon>
+                </ion-button>
+              </ion-item>
+
               <ion-item>
                 <ion-label position="stacked">Número do Chip</ion-label>
                 <ion-input
@@ -296,7 +315,8 @@ export class ConfigSimplePage implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private trackerConfigService: TrackerConfigService
+    private trackerConfigService: TrackerConfigService,
+    private router: Router
   ) {
     console.log('ConfigSimplePage constructor');
   }
@@ -305,6 +325,15 @@ export class ConfigSimplePage implements OnInit {
     console.log('ConfigSimplePage ngOnInit');
     this.initializeForm();
     this.initializeSteps();
+    
+    // Verificar se há IMEI passado do scanner
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras?.state?.['imei']) {
+      const scannedIMEI = navigation.extras.state['imei'];
+      this.configForm.patchValue({ imei: scannedIMEI });
+      this.message = 'IMEI escaneado com sucesso!';
+      this.messageColor = 'success';
+    }
     
     // Monitorar sessão de configuração
     this.trackerConfigService.configurationSession$.subscribe(session => {
@@ -345,6 +374,7 @@ export class ConfigSimplePage implements OnInit {
 
   private initializeForm(): void {
     this.configForm = this.formBuilder.group({
+      imei: ['', [Validators.required, Validators.pattern(/^\d{15}$/)]],
       chipNumber: ['', [Validators.required, Validators.pattern(/^\d{10,15}$/)]],
       deviceType: ['GT02D', Validators.required],
       operator: ['VIVO', Validators.required]
@@ -364,6 +394,7 @@ export class ConfigSimplePage implements OnInit {
       console.log('Formulário válido:', this.configForm.value);
       
       const device = {
+        imei: this.configForm.value.imei,
         chipNumber: this.configForm.value.chipNumber,
         deviceType: this.configForm.value.deviceType,
         operator: this.configForm.value.operator
@@ -428,6 +459,7 @@ export class ConfigSimplePage implements OnInit {
     
     // Resetar formulário
     this.configForm.reset({
+      imei: '',
       deviceType: 'GT02D',
       operator: 'VIVO'
     });
@@ -464,6 +496,22 @@ export class ConfigSimplePage implements OnInit {
       this.message = 'Reenviando cadastro no Traccar...';
       this.messageColor = 'primary';
       this.isConfiguring = true;
+    }
+  }
+
+  async openScanner(): Promise<void> {
+    try {
+      // Navegar para a página de scanner
+      await this.router.navigate(['/scanner'], {
+        state: {
+          imei: this.configForm.get('imei')?.value || '',
+          returnUrl: '/config'
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao abrir scanner:', error);
+      this.message = 'Erro ao abrir scanner. Tente novamente.';
+      this.messageColor = 'danger';
     }
   }
 

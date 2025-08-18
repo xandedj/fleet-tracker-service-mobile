@@ -41,4 +41,8 @@ export const routes: Routes = [
       import('./features/login/login.page').then((m) => m.LoginPage),
     canActivate: [loginGuard],
   },
+  {
+    path: 'scanner',
+    loadComponent: () => import('./features/scanner/scanner.page').then( m => m.ScannerPage)
+  },
 ];

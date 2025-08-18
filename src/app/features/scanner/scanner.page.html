@@ -1,13 +1,81 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>scanner</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/config"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Scanner IMEI</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">scanner</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="scanner-content">
+  <div class="scanner-container">
+    <!-- Título e instruções -->
+    <div class="scanner-header">
+      <ion-icon name="qr-code-outline" class="scanner-icon"></ion-icon>
+      <h2>Capturar IMEI</h2>
+      <p>Escaneie o código QR ou código de barras do dispositivo, ou digite manualmente</p>
+    </div>
+
+    <!-- Campo de entrada manual -->
+    <div class="manual-input-section">
+      <ion-item>
+        <ion-label position="stacked">IMEI do Dispositivo</ion-label>
+        <ion-input 
+          [(ngModel)]="imeiValue" 
+          placeholder="Digite ou escaneie o IMEI"
+          maxlength="15"
+          type="number">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Botões de ação -->
+    <div class="action-buttons">
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        (click)="openCamera()"
+        [disabled]="isScanning">
+        <ion-icon name="camera-outline" slot="start"></ion-icon>
+        {{ isScanning ? 'Escaneando...' : 'Escanear Código' }}
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        (click)="confirmIMEI()"
+        [disabled]="!imeiValue || imeiValue.length < 15">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Confirmar IMEI
+      </ion-button>
+    </div>
+
+    <!-- Área de preview da câmera -->
+    <div class="camera-preview" *ngIf="isScanning">
+      <div class="scanning-overlay">
+        <div class="scanning-frame"></div>
+        <p>Posicione o código dentro do quadro</p>
+        <ion-button fill="clear" (click)="stopScanning()">
+          <ion-icon name="close-outline"></ion-icon>
+          Cancelar
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Instruções de uso -->
+    <div class="instructions">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Como usar</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ul>
+            <li>Toque em "Escanear Código" para usar a câmera</li>
+            <li>Posicione o código QR ou código de barras dentro do quadro</li>
+            <li>Ou digite o IMEI manualmente (15 dígitos)</li>
+            <li>Confirme o IMEI para continuar a configuração</li>
+          </ul>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
 </ion-content>

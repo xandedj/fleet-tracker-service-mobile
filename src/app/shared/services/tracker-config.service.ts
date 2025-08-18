@@ -255,8 +255,9 @@ export class TrackerConfigService {
       commands: commands,
       steps: steps,
       firstPositionReceived: false,
-      startedAt: new Date()
-    };
+      startedAt: new Date(),
+      ...(device as any).imei && { imei: (device as any).imei } // Incluir IMEI se fornecido
+    } as ConfigurationSession & { imei?: string };
 
     // Iniciar primeiro step
     this.updateStepStatus(session, 'Preparação', 'IN_PROGRESS');
@@ -517,20 +518,14 @@ export class TrackerConfigService {
     }
   }
 
-  // Prosseguir para cadastro no Traccar mesmo com falhas
+  // Prosseguir para cadastro no Traccar usando IMEI fornecido
   async proceedToTraccarRegistration(session: ConfigurationSession): Promise<void> {
     try {
       console.log('Iniciando cadastro no Traccar...');
       
-      // Obter IMEI se ainda não tiver
-      if (!this.currentIMEI) {
-        try {
-          this.currentIMEI = await this.getDeviceIMEI(session.chipNumber);
-        } catch (error) {
-          console.warn('Não foi possível obter IMEI, usando ID simulado');
-          this.currentIMEI = `GT02D_${Date.now()}`;
-        }
-      }
+      // Usar IMEI fornecido no formulário
+      const deviceIMEI = (session as any).imei || `GT02D_${Date.now()}`;
+      console.log('IMEI do dispositivo:', deviceIMEI);
       
       // Atualizar step para cadastro no Traccar
       this.updateStepStatus(session, 'Comandos SMS', 'COMPLETED');
@@ -538,25 +533,43 @@ export class TrackerConfigService {
       
       // Criar dispositivo no Traccar
       const traccarDevice = {
-        name: this.currentIMEI, // IMEI como nome
-        uniqueId: this.currentIMEI, // IMEI como uniqueId
+        name: `${session.deviceType}_${deviceIMEI}`, // Nome com tipo e IMEI
+        uniqueId: deviceIMEI, // IMEI como uniqueId
         model: session.deviceType, // Modelo do rastreador
         category: 'car' // Sempre categoria car
       };
       
-      const createdDevice = await this.traccarService.createDevice(traccarDevice).toPromise();
+      console.log('Dados do dispositivo para Traccar:', traccarDevice);
       
-      if (createdDevice && createdDevice.id) {
-        session.deviceId = createdDevice.id.toString();
+      const response = await this.traccarService.createDevice(traccarDevice).toPromise();
+      
+      console.log('Resposta completa do backend:', response);
+      
+      // Verificar se a resposta tem o formato esperado do backend
+      if (response && (response as any).success && (response as any).data) {
+        const deviceData = (response as any).data;
+        session.deviceId = deviceData.id ? deviceData.id.toString() : this.generateId();
+        
         this.updateStepStatus(session, 'Cadastro Traccar', 'COMPLETED');
         this.updateStepStatus(session, 'Monitoramento', 'IN_PROGRESS');
         
-        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${this.currentIMEI}`, 'success');
+        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${deviceIMEI}`, 'success');
+        
+        // Iniciar monitoramento da primeira posição
+        this.startPositionMonitoring(session);
+      } else if (response && (response as any).id) {
+        // Formato direto do Traccar
+        session.deviceId = (response as any).id.toString();
+        
+        this.updateStepStatus(session, 'Cadastro Traccar', 'COMPLETED');
+        this.updateStepStatus(session, 'Monitoramento', 'IN_PROGRESS');
+        
+        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${deviceIMEI}`, 'success');
         
         // Iniciar monitoramento da primeira posição
         this.startPositionMonitoring(session);
       } else {
-        throw new Error('Falha ao criar dispositivo no Traccar');
+        throw new Error('Formato de resposta inesperado do backend');
       }
       
     } catch (error: any) {
@@ -614,37 +627,47 @@ export class TrackerConfigService {
       // Resetar step do Traccar
       this.updateStepStatus(session, 'Cadastro Traccar', 'IN_PROGRESS');
       
-      // Obter IMEI se ainda não tiver
-      if (!this.currentIMEI) {
-        try {
-          this.currentIMEI = await this.getDeviceIMEI(session.chipNumber);
-        } catch (error) {
-          console.warn('Não foi possível obter IMEI, usando ID simulado');
-          this.currentIMEI = `GT02D_${Date.now()}`;
-        }
-      }
+      // Usar IMEI fornecido no formulário
+      const deviceIMEI = (session as any).imei || `GT02D_${Date.now()}`;
+      console.log('IMEI do dispositivo (retry):', deviceIMEI);
       
       // Criar dispositivo no Traccar
       const traccarDevice = {
-        name: this.currentIMEI, // IMEI como nome
-        uniqueId: this.currentIMEI, // IMEI como uniqueId
+        name: `${session.deviceType}_${deviceIMEI}`, // Nome com tipo e IMEI
+        uniqueId: deviceIMEI, // IMEI como uniqueId
         model: session.deviceType, // Modelo do rastreador
         category: 'car' // Sempre categoria car
       };
       
-      const createdDevice = await this.traccarService.createDevice(traccarDevice).toPromise();
+      const response = await this.traccarService.createDevice(traccarDevice).toPromise();
       
-      if (createdDevice && createdDevice.id) {
-        session.deviceId = createdDevice.id.toString();
+      console.log('Resposta completa do backend (retry):', response);
+      
+      // Verificar se a resposta tem o formato esperado do backend
+      if (response && (response as any).success && (response as any).data) {
+        const deviceData = (response as any).data;
+        session.deviceId = deviceData.id ? deviceData.id.toString() : this.generateId();
+        
         this.updateStepStatus(session, 'Cadastro Traccar', 'COMPLETED');
         this.updateStepStatus(session, 'Monitoramento', 'IN_PROGRESS');
         
-        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${this.currentIMEI}`, 'success');
+        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${deviceIMEI}`, 'success');
+        
+        // Iniciar monitoramento da primeira posição
+        this.startPositionMonitoring(session);
+      } else if (response && (response as any).id) {
+        // Formato direto do Traccar
+        session.deviceId = (response as any).id.toString();
+        
+        this.updateStepStatus(session, 'Cadastro Traccar', 'COMPLETED');
+        this.updateStepStatus(session, 'Monitoramento', 'IN_PROGRESS');
+        
+        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${deviceIMEI}`, 'success');
         
         // Iniciar monitoramento da primeira posição
         this.startPositionMonitoring(session);
       } else {
-        throw new Error('Falha ao criar dispositivo no Traccar');
+        throw new Error('Formato de resposta inesperado do backend');
       }
       
     } catch (error: any) {

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { tap, catchError, map } from 'rxjs/operators';
 import { Capacitor } from '@capacitor/core';
 import { environment } from '../../../environments/environment';
 import { TraccarDevice } from '../models/tracker.models';
@@ -48,17 +49,15 @@ export class TraccarService {
   constructor(private http: HttpClient) {}
 
   private getTraccarUrl(): string {
-    // No dispositivo móvel, usar URL direta HTTP
-    if (Capacitor.isNativePlatform()) {
-      return 'http://51.222.16.164:8082/api';
-    }
-    // No navegador, usar proxy para evitar Mixed Content
-    return environment.urlTraccar;
+    // Usar diretamente o backend API
+    return 'https://fleettrack-backend-monitoring.onrender.com/api';
   }
 
   private getAuthHeaders(): HttpHeaders {
+    // Usar token de autenticação do backend
+    const token = localStorage.getItem('token');
     return new HttpHeaders({
-      'Authorization': `Bearer ${environment.tokenTraccar}`,
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     });
   }
@@ -93,9 +92,29 @@ export class TraccarService {
 
   // Criar novo dispositivo
   createDevice(device: Partial<TraccarDevice>): Observable<TraccarDevice> {
-    return this.http.post<TraccarDevice>(`${this.traccarUrl}/devices`, device, {
-      headers: this.getAuthHeaders(),
-    });
+    const url = `${this.traccarUrl}/v1/traccar/devices`;
+    const headers = this.getAuthHeaders();
+    
+    console.log('🔧 TraccarService.createDevice() - Requisição direta para backend:');
+    console.log('URL:', url);
+    console.log('Device data:', JSON.stringify(device, null, 2));
+    console.log('Token:', localStorage.getItem('token'));
+    
+    return this.http.post<TraccarDevice>(url, device, { headers }).pipe(
+      tap(response => {
+        console.log('✅ Dispositivo criado com sucesso:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Erro ao criar dispositivo:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          error: error.error,
+          url: error.url
+        });
+        return throwError(() => error);
+      })
+    );
   }
 
   // Atualizar dispositivo
