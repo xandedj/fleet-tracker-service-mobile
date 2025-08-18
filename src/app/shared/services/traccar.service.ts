@@ -38,9 +38,7 @@ export interface TraccarEvent {
   providedIn: 'root',
 })
 export class TraccarService {
-  private readonly traccarUrl = 'http://http:/51.222.16.164:8082/api'; // Configurar URL do Traccar
-  private readonly traccarUsername = 'admin'; // Configurar credenciais
-  private readonly traccarPassword = 'admin';
+  private readonly traccarUrl = environment.urlTraccar;
 
   private websocket: WebSocket | null = null;
   private devicePositionsSubject = new BehaviorSubject<TraccarPosition[]>([]);
@@ -49,9 +47,8 @@ export class TraccarService {
   constructor(private http: HttpClient) {}
 
   private getAuthHeaders(): HttpHeaders {
-    const credentials = btoa(`${this.traccarUsername}:${this.traccarPassword}`);
     return new HttpHeaders({
-      Authorization: `Basic ${credentials}`,
+      'Authorization': `Bearer ${environment.tokenTraccar}`,
       'Content-Type': 'application/json',
     });
   }
@@ -154,9 +151,7 @@ export class TraccarService {
         url: '/api/session',
         method: 'GET',
         headers: {
-          Authorization: `Basic ${btoa(
-            `${this.traccarUsername}:${this.traccarPassword}`
-          )}`,
+          Authorization: `Bearer ${environment.tokenTraccar}`,
         },
       };
 

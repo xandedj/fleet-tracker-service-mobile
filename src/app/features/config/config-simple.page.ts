@@ -81,13 +81,24 @@ import { ConfigurationSession, ConfigurationStep, CONFIGURATION_STEPS } from '..
 
               <!-- Botão para continuar mesmo com falhas -->
               <ion-button
-                *ngIf="showRetryButton"
+                *ngIf="showRetryButton && !showTraccarRetryButton"
                 expand="block"
                 color="success"
                 (click)="forceComplete()"
                 class="force-complete-button">
                 <ion-icon name="checkmark-circle" slot="start"></ion-icon>
                 Continuar Mesmo com Falhas
+              </ion-button>
+
+              <!-- Botão para reenviar cadastro no Traccar -->
+              <ion-button
+                *ngIf="showTraccarRetryButton"
+                expand="block"
+                color="tertiary"
+                (click)="retryTraccarRegistration()"
+                class="traccar-retry-button">
+                <ion-icon name="server" slot="start"></ion-icon>
+                Reenviar Cadastro Traccar
               </ion-button>
 
               <!-- Botão para limpar sessão -->
@@ -280,6 +291,7 @@ export class ConfigSimplePage implements OnInit {
   currentSession: ConfigurationSession | null = null;
   configurationSteps: ConfigurationStep[] = [];
   showRetryButton = false;
+  showTraccarRetryButton = false;
   failureDetails: string[] = [];
 
   constructor(
@@ -305,13 +317,24 @@ export class ConfigSimplePage implements OnInit {
         
         // Verificar se há falhas
         if (session.status === 'FAILED') {
-          this.showRetryButton = true;
           this.isConfiguring = false;
-          this.failureDetails = this.trackerConfigService.getFailureDetails(session);
-          this.message = `Configuração falhou. ${this.failureDetails.length} erro(s) encontrado(s).`;
-          this.messageColor = 'danger';
+          
+          // Verificar se falhou especificamente no cadastro Traccar
+          if (this.trackerConfigService.hasTraccarRegistrationFailed(session)) {
+            this.showTraccarRetryButton = true;
+            this.showRetryButton = false;
+            this.message = 'Falha no cadastro Traccar. Clique para reenviar.';
+            this.messageColor = 'warning';
+          } else {
+            this.showRetryButton = true;
+            this.showTraccarRetryButton = false;
+            this.failureDetails = this.trackerConfigService.getFailureDetails(session);
+            this.message = `Configuração falhou. ${this.failureDetails.length} erro(s) encontrado(s).`;
+            this.messageColor = 'danger';
+          }
         } else if (session.status === 'COMPLETED') {
           this.showRetryButton = false;
+          this.showTraccarRetryButton = false;
           this.failureDetails = [];
           this.message = 'Configuração concluída com sucesso!';
           this.messageColor = 'success';
@@ -425,6 +448,22 @@ export class ConfigSimplePage implements OnInit {
       this.failureDetails = [];
       this.message = 'Prosseguindo para cadastro no Traccar...';
       this.messageColor = 'success';
+    }
+  }
+
+  retryTraccarRegistration(): void {
+    if (this.currentSession) {
+      console.log('Reenviando cadastro no Traccar...');
+      
+      // Usar método do serviço para reenviar cadastro Traccar
+      this.trackerConfigService.retryTraccarRegistration(this.currentSession);
+      
+      // Limpar estado da UI
+      this.showTraccarRetryButton = false;
+      this.showRetryButton = false;
+      this.message = 'Reenviando cadastro no Traccar...';
+      this.messageColor = 'primary';
+      this.isConfiguring = true;
     }
   }
 

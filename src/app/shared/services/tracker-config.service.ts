@@ -606,6 +606,67 @@ export class TrackerConfigService {
     await this.proceedToTraccarRegistration(session);
   }
 
+  // Método para reenviar apenas o cadastro no Traccar
+  async retryTraccarRegistration(session: ConfigurationSession): Promise<void> {
+    console.log('Reenviando cadastro no Traccar...');
+    
+    try {
+      // Resetar step do Traccar
+      this.updateStepStatus(session, 'Cadastro Traccar', 'IN_PROGRESS');
+      
+      // Obter IMEI se ainda não tiver
+      if (!this.currentIMEI) {
+        try {
+          this.currentIMEI = await this.getDeviceIMEI(session.chipNumber);
+        } catch (error) {
+          console.warn('Não foi possível obter IMEI, usando ID simulado');
+          this.currentIMEI = `GT02D_${Date.now()}`;
+        }
+      }
+      
+      // Criar dispositivo no Traccar
+      const traccarDevice = {
+        name: this.currentIMEI, // IMEI como nome
+        uniqueId: this.currentIMEI, // IMEI como uniqueId
+        model: session.deviceType, // Modelo do rastreador
+        category: 'car' // Sempre categoria car
+      };
+      
+      const createdDevice = await this.traccarService.createDevice(traccarDevice).toPromise();
+      
+      if (createdDevice && createdDevice.id) {
+        session.deviceId = createdDevice.id.toString();
+        this.updateStepStatus(session, 'Cadastro Traccar', 'COMPLETED');
+        this.updateStepStatus(session, 'Monitoramento', 'IN_PROGRESS');
+        
+        this.showNotification(`✅ Dispositivo cadastrado no Traccar: ${this.currentIMEI}`, 'success');
+        
+        // Iniciar monitoramento da primeira posição
+        this.startPositionMonitoring(session);
+      } else {
+        throw new Error('Falha ao criar dispositivo no Traccar');
+      }
+      
+    } catch (error: any) {
+      console.error('Erro no reenvio do cadastro Traccar:', error);
+      const errorMessage = error?.message || 'Erro desconhecido';
+      this.updateStepStatus(session, 'Cadastro Traccar', 'FAILED', errorMessage);
+      this.showNotification(`❌ Erro no cadastro Traccar: ${errorMessage}`, 'danger');
+    }
+  }
+
+  // Verificar se falhou especificamente no cadastro Traccar
+  hasTraccarRegistrationFailed(session: ConfigurationSession): boolean {
+    const traccarStep = session.steps.find(step => step.title === 'Cadastro Traccar');
+    return traccarStep?.status === 'FAILED';
+  }
+
+  // Verificar se pode prosseguir para monitoramento
+  canProceedToMonitoring(session: ConfigurationSession): boolean {
+    const traccarStep = session.steps.find(step => step.title === 'Cadastro Traccar');
+    return traccarStep?.status === 'COMPLETED';
+  }
+
   private getCommandTypeLabel(type: string): string {
     const labels: { [key: string]: string } = {
       'TIMEZONE': 'Fuso Horário',
