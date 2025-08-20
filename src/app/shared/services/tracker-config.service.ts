@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import {
   TrackerDevice,
   GT02DCommands,
+  CRX3MiniCommands,
   SMSCommand,
   ConfigurationSession,
   ConfigurationStep,
@@ -11,6 +12,13 @@ import {
   CONFIGURATION_STEPS,
   OperatorConfig
 } from '../models/tracker.models';
+import {
+  generateCRX3MiniCommands,
+  generateGT02DCommands,
+  getCommandsForDevice,
+  CRX3_MINI_DEFAULT_CONFIG,
+  GT02D_DEFAULT_CONFIG
+} from '../models/sms-commands.model';
 import { TraccarService } from './traccar.service';
 import { Capacitor } from '@capacitor/core';
 import { SMS } from '@awesome-cordova-plugins/sms/ngx';
@@ -22,7 +30,7 @@ import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions
 export class TrackerConfigService {
   private configurationSessionSubject = new BehaviorSubject<ConfigurationSession | null>(null);
   public configurationSession$ = this.configurationSessionSubject.asObservable();
-  private smsDelay = 10000; // 10 segundos entre comandos
+  private smsDelay = 20000; // 10 segundos entre comandos
 
   constructor(
     private traccarService: TraccarService,
@@ -110,14 +118,21 @@ export class TrackerConfigService {
     const session = this.configurationSessionSubject.value;
     if (!session) return;
 
-    // Mapear respostas para tipos de comando
+    // Mapear respostas para tipos de comando (GT02D e CRX3 Mini)
     const responseMap: { [key: string]: string[] } = {
+      // Comandos GT02D
       'APN': ['APN OK', 'sapn ok'],
       'SERVER': ['IP OK', 'server ok'],
       'GPRS': ['GPRS OK', 'gprs ok'],
       'TIMEZONE': ['STZ OK', 'timezone ok'],
       'MOVING_INTERVAL': ['SMT OK', 'INTERVAL OK', 'moving ok'],
-      'STOPPED_INTERVAL': ['SST OK', 'INTERVAL OK', 'stopped ok']
+      'STOPPED_INTERVAL': ['SST OK', 'INTERVAL OK', 'stopped ok'],
+      
+      // Comandos CRX3 Mini
+      'TIMER': ['TIMER OK', 'timer ok'],
+      'GPRSON': ['GPRSON OK', 'gprs on ok'],
+      'ANGLEREP': ['ANGLEREP OK', 'angle ok'],
+      'DISTANCE': ['DISTANCE OK', 'distance ok']
     };
 
     // Verificar qual comando foi confirmado
@@ -192,7 +207,44 @@ export class TrackerConfigService {
     };
   }
 
+  generateCRX3MiniCommands(
+    chipNumber: string,
+    operator: 'VIVO' | 'CLARO',
+    customConfig?: {
+      movingTime?: number;
+      stoppedTime?: number;
+      angle?: number;
+      sensitivity?: number;
+      distance?: number;
+    }
+  ): CRX3MiniCommands {
+    const operatorConfig = OPERATOR_CONFIGS.find(op => op.name === operator);
+    
+    if (!operatorConfig) {
+      throw new Error(`Configuração não encontrada para operadora: ${operator}`);
+    }
+
+    // Mapear os nomes dos parâmetros para o formato esperado pela função
+    const mappedConfig = customConfig ? {
+      moving: customConfig.movingTime,
+      stopped: customConfig.stoppedTime,
+      angle: customConfig.angle,
+      sensitivity: customConfig.sensitivity,
+      distance: customConfig.distance
+    } : undefined;
+
+    return generateCRX3MiniCommands(operatorConfig, SERVER_CONFIG, mappedConfig);
+  }
+
   createSMSCommands(device: TrackerDevice): SMSCommand[] {
+    if (device.deviceType === 'CRX3_MINI') {
+      return this.createCRX3MiniSMSCommands(device);
+    } else {
+      return this.createGT02DSMSCommands(device);
+    }
+  }
+
+  private createGT02DSMSCommands(device: TrackerDevice): SMSCommand[] {
     const commands = this.generateGT02DCommands(device.chipNumber, device.operator);
     
     return [
@@ -236,6 +288,57 @@ export class TrackerConfigService {
         chipNumber: device.chipNumber,
         command: commands.stoppedInterval,
         commandType: 'STOPPED_INTERVAL',
+        status: 'PENDING'
+      }
+    ];
+  }
+
+  private createCRX3MiniSMSCommands(device: TrackerDevice): SMSCommand[] {
+    // Extrair configurações personalizadas do CRX 3 mini se disponíveis
+    const crx3Config = (device as any).crx3Config;
+    const commands = this.generateCRX3MiniCommands(device.chipNumber, device.operator, crx3Config);
+    
+    return [
+      {
+        deviceId: device.id || '',
+        chipNumber: device.chipNumber,
+        command: commands.apn,
+        commandType: 'APN',
+        status: 'PENDING'
+      },
+      {
+        deviceId: device.id || '',
+        chipNumber: device.chipNumber,
+        command: commands.server,
+        commandType: 'SERVER',
+        status: 'PENDING'
+      },
+      {
+        deviceId: device.id || '',
+        chipNumber: device.chipNumber,
+        command: commands.timer,
+        commandType: 'TIMER',
+        status: 'PENDING'
+      },
+      {
+        deviceId: device.id || '',
+        chipNumber: device.chipNumber,
+        command: commands.gprsOn,
+        commandType: 'GPRSON',
+        status: 'PENDING'
+      },
+      {
+        deviceId: device.id || '',
+        chipNumber: device.chipNumber,
+        command: commands.angleRep,
+        commandType: 'ANGLEREP',
+        status: 'PENDING'
+      },
+      {
+        deviceId: device.id || '',
+        chipNumber: device.chipNumber,
+        command: commands.distance,
+        commandType: 'DISTANCE',
         status: 'PENDING'
       }
     ];
@@ -692,12 +795,19 @@ export class TrackerConfigService {
 
   private getCommandTypeLabel(type: string): string {
     const labels: { [key: string]: string } = {
+      // Comandos GT02D
       'TIMEZONE': 'Fuso Horário',
       'APN': 'Configuração APN',
       'SERVER': 'Servidor Traccar',
       'GPRS': 'Ativação GPRS',
       'MOVING_INTERVAL': 'Intervalo em Movimento',
-      'STOPPED_INTERVAL': 'Intervalo Parado'
+      'STOPPED_INTERVAL': 'Intervalo Parado',
+      
+      // Comandos CRX3 Mini
+      'TIMER': 'Tempo de Comunicação',
+      'GPRSON': 'Ativar GPRS',
+      'ANGLEREP': 'Definir Ângulo',
+      'DISTANCE': 'Configurar Distância'
     };
     return labels[type] || type;
   }

@@ -28,12 +28,22 @@ export interface GT02DCommands {
   stoppedInterval: string;
 }
 
+export interface CRX3MiniCommands {
+  apn: string;
+  server: string;
+  timer: string;
+  gprsOn: string;
+  angleRep: string;
+  distance: string;
+}
+
 export interface SMSCommand {
   id?: string;
   deviceId: string;
   chipNumber: string;
   command: string;
-  commandType: 'TIMEZONE' | 'APN' | 'SERVER' | 'GPRS' | 'MOVING_INTERVAL' | 'STOPPED_INTERVAL';
+  commandType: 'TIMEZONE' | 'APN' | 'SERVER' | 'GPRS' | 'MOVING_INTERVAL' | 'STOPPED_INTERVAL' |
+               'TIMER' | 'GPRSON' | 'ANGLEREP' | 'DISTANCE';
   status: 'PENDING' | 'SENT' | 'CONFIRMED' | 'FAILED';
   sentAt?: Date;
   confirmedAt?: Date;

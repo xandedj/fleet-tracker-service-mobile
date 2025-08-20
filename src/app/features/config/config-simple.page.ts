@@ -30,7 +30,7 @@ import { ConfigurationSession, ConfigurationStep, CONFIGURATION_STEPS } from '..
         <!-- Formulário de Configuração -->
         <ion-card>
           <ion-card-header>
-            <ion-card-title>Configuração GT02D</ion-card-title>
+            <ion-card-title>Configuração de Equipamentos</ion-card-title>
           </ion-card-header>
           
           <ion-card-content>
@@ -66,6 +66,7 @@ import { ConfigurationSession, ConfigurationStep, CONFIGURATION_STEPS } from '..
                 <ion-label position="stacked">Tipo do Dispositivo</ion-label>
                 <ion-select formControlName="deviceType">
                   <ion-select-option value="GT02D">GT02D</ion-select-option>
+                  <ion-select-option value="CRX3_MINI">CRX 3 Mini</ion-select-option>
                 </ion-select>
               </ion-item>
               
@@ -73,10 +74,66 @@ import { ConfigurationSession, ConfigurationStep, CONFIGURATION_STEPS } from '..
                 <ion-label position="stacked">Operadora</ion-label>
                 <ion-select formControlName="operator">
                   <ion-select-option value="VIVO">VIVO</ion-select-option>
-                  <ion-select-option value="TIM">TIM</ion-select-option>
                   <ion-select-option value="CLARO">CLARO</ion-select-option>
                 </ion-select>
               </ion-item>
+
+              <!-- Configurações específicas do CRX 3 Mini -->
+              <div *ngIf="configForm.get('deviceType')?.value === 'CRX3_MINI'" class="crx3-config">
+                <ion-item>
+                  <ion-label position="stacked">Tempo em Movimento (segundos)</ion-label>
+                  <ion-input
+                    formControlName="movingTime"
+                    type="number"
+                    placeholder="20"
+                    min="10"
+                    max="300">
+                  </ion-input>
+                </ion-item>
+
+                <ion-item>
+                  <ion-label position="stacked">Tempo Parado (segundos)</ion-label>
+                  <ion-input
+                    formControlName="stoppedTime"
+                    type="number"
+                    placeholder="1800"
+                    min="60"
+                    max="7200">
+                  </ion-input>
+                </ion-item>
+
+                <ion-item>
+                  <ion-label position="stacked">Ângulo de Curva (graus)</ion-label>
+                  <ion-input
+                    formControlName="angle"
+                    type="number"
+                    placeholder="15"
+                    min="5"
+                    max="90">
+                  </ion-input>
+                </ion-item>
+
+                <ion-item>
+                  <ion-label position="stacked">Sensibilidade</ion-label>
+                  <ion-select formControlName="sensitivity">
+                    <ion-select-option value="1">1 - Baixa</ion-select-option>
+                    <ion-select-option value="2">2 - Média</ion-select-option>
+                    <ion-select-option value="3">3 - Alta</ion-select-option>
+                    <ion-select-option value="4">4 - Muito Alta</ion-select-option>
+                  </ion-select>
+                </ion-item>
+
+                <ion-item>
+                  <ion-label position="stacked">Distância Mínima (metros)</ion-label>
+                  <ion-input
+                    formControlName="distance"
+                    type="number"
+                    placeholder="300"
+                    min="50"
+                    max="2000">
+                  </ion-input>
+                </ion-item>
+              </div>
               
               <ion-button
                 expand="block"
@@ -377,7 +434,13 @@ export class ConfigSimplePage implements OnInit {
       imei: ['', [Validators.required, Validators.pattern(/^\d{15}$/)]],
       chipNumber: ['', [Validators.required, Validators.pattern(/^\d{10,15}$/)]],
       deviceType: ['GT02D', Validators.required],
-      operator: ['VIVO', Validators.required]
+      operator: ['VIVO', Validators.required],
+      // Campos específicos do CRX 3 Mini
+      movingTime: [20, [Validators.min(10), Validators.max(300)]],
+      stoppedTime: [1800, [Validators.min(60), Validators.max(7200)]],
+      angle: [15, [Validators.min(5), Validators.max(90)]],
+      sensitivity: [3, Validators.required],
+      distance: [300, [Validators.min(50), Validators.max(2000)]]
     });
   }
 
@@ -397,7 +460,17 @@ export class ConfigSimplePage implements OnInit {
         imei: this.configForm.value.imei,
         chipNumber: this.configForm.value.chipNumber,
         deviceType: this.configForm.value.deviceType,
-        operator: this.configForm.value.operator
+        operator: this.configForm.value.operator,
+        // Configurações específicas do CRX 3 Mini
+        ...(this.configForm.value.deviceType === 'CRX3_MINI' && {
+          crx3Config: {
+            movingTime: this.configForm.value.movingTime,
+            stoppedTime: this.configForm.value.stoppedTime,
+            angle: this.configForm.value.angle,
+            sensitivity: this.configForm.value.sensitivity,
+            distance: this.configForm.value.distance
+          }
+        })
       };
 
       try {
@@ -406,7 +479,7 @@ export class ConfigSimplePage implements OnInit {
         this.showTimeline = true;
         this.isConfiguring = true;
         
-        this.message = 'Configuração iniciada com sucesso!';
+        this.message = `Configuração ${device.deviceType} iniciada com sucesso!`;
         this.messageColor = 'success';
         
         // Enviar comandos
