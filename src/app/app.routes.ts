@@ -24,6 +24,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'comandos',
+        loadComponent: () =>
+          import('./features/comandos/comandos.page').then(
+            (m) => m.ComandosPage
+          ),
+      },
+      {
         path: 'scanner',
         loadComponent: () =>
           import('./features/scanner/scanner.page').then((m) => m.ScannerPage),

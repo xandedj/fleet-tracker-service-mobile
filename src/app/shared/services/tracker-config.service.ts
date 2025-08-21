@@ -802,6 +802,12 @@ export class TrackerConfigService {
       'GPRS': 'Ativação GPRS',
       'MOVING_INTERVAL': 'Intervalo em Movimento',
       'STOPPED_INTERVAL': 'Intervalo Parado',
+      'FACTORY_RESET': 'Reconfiguração de Fábrica',
+      'RESET': 'Reiniciar Equipamento',
+      'VINFO': 'Status e IMEI',
+      'BLOCK_VEHICLE': 'Bloquear Veículo',
+      'UNBLOCK_VEHICLE': 'Desbloquear Veículo',
+      'CHECK_IP': 'Verificar IP do Servidor',
       
       // Comandos CRX3 Mini
       'TIMER': 'Tempo de Comunicação',

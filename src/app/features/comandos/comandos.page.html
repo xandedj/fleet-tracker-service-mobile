@@ -1,0 +1,254 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Comandos Manuais</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <!-- Formulário Principal -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="settings-outline"></ion-icon>
+          Configuração do Equipamento
+        </ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <form [formGroup]="comandosForm">
+          <ion-grid>
+            <ion-row>
+              <ion-col size="12" size-md="6">
+                <ion-item>
+                  <ion-label position="stacked">IMEI do Equipamento</ion-label>
+                  <ion-input 
+                    formControlName="imei"
+                    placeholder="Digite o IMEI (15 dígitos)"
+                    type="tel"
+                    maxlength="15">
+                    <ion-icon name="phone-portrait-outline" slot="start"></ion-icon>
+                  </ion-input>
+                </ion-item>
+              </ion-col>
+              
+              <ion-col size="12" size-md="6">
+                <ion-item>
+                  <ion-label position="stacked">Número do Chip</ion-label>
+                  <ion-input 
+                    formControlName="phoneNumber"
+                    placeholder="Digite o número do chip"
+                    type="tel"
+                    maxlength="11">
+                    <ion-icon name="mail-outline" slot="start"></ion-icon>
+                  </ion-input>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+            
+            <ion-row>
+              <ion-col size="12">
+                <ion-item>
+                  <ion-label position="stacked">Tipo de Equipamento</ion-label>
+                  <ion-select 
+                    formControlName="deviceType"
+                    (ionChange)="onDeviceTypeChange()"
+                    placeholder="Selecione o tipo">
+                    <ion-select-option 
+                      *ngFor="let type of deviceTypes" 
+                      [value]="type.value">
+                      {{ type.label }}
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Lista de Comandos Disponíveis -->
+    <ion-card *ngIf="availableCommands.length > 0">
+      <ion-card-header>
+        <ion-card-title>Comandos Disponíveis</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-accordion-group>
+          <ion-accordion 
+            *ngFor="let command of availableCommands; trackBy: trackByCommand"
+            [value]="command.type">
+            <ion-item slot="header" color="light">
+              <ion-label>
+                <h3>{{ command.type }}</h3>
+                <p>{{ command.description }}</p>
+              </ion-label>
+              <ion-chip [color]="command.required ? 'danger' : 'medium'" slot="end">
+                {{ command.required ? 'Obrigatório' : 'Opcional' }}
+              </ion-chip>
+            </ion-item>
+            
+            <div class="ion-padding" slot="content">
+              <p><strong>Template:</strong> <code>{{ command.template }}</code></p>
+              
+              <!-- Parâmetros do Comando -->
+              <div *ngIf="getCommandParameters(command.template).length > 0">
+                <h4>Parâmetros:</h4>
+                <ion-grid>
+                  <ion-row>
+                    <ion-col 
+                      size="12" 
+                      size-md="6" 
+                      *ngFor="let param of getCommandParameters(command.template)">
+                      <ion-item>
+                        <ion-label position="stacked">{{ param | titlecase }}</ion-label>
+                        <ion-input 
+                          [placeholder]="getParameterPlaceholder(param)"
+                          (ionInput)="onParameterChange(param, $event.detail.value)">
+                        </ion-input>
+                      </ion-item>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </div>
+              
+              <ion-button 
+                expand="block" 
+                fill="outline" 
+                (click)="selectCommand(command)"
+                [disabled]="!comandosForm.valid">
+                <ion-icon name="settings-outline" slot="start"></ion-icon>
+                Selecionar Comando
+              </ion-button>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Comando Gerado -->
+    <ion-card *ngIf="selectedCommand && generatedCommand">
+      <ion-card-header>
+        <ion-card-title color="primary">Comando Gerado</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <div class="command-preview">
+          <ion-item>
+            <ion-label>
+              <h3>{{ selectedCommand.type }}</h3>
+              <p>{{ selectedCommand.description }}</p>
+            </ion-label>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label>
+              <h4>Comando SMS:</h4>
+              <div class="command-text">{{ generatedCommand }}</div>
+            </ion-label>
+            <ion-button 
+              fill="clear" 
+              slot="end" 
+              (click)="copyCommand()">
+              <ion-icon name="copy-outline"></ion-icon>
+            </ion-button>
+          </ion-item>
+          
+          <ion-grid>
+            <ion-row>
+              <ion-col size="6">
+                <ion-button 
+                  expand="block" 
+                  color="primary"
+                  (click)="sendCommand()"
+                  [disabled]="isLoading || !comandosForm.valid">
+                  <ion-spinner *ngIf="isLoading" slot="start"></ion-spinner>
+                  <ion-icon *ngIf="!isLoading" name="send-outline" slot="start"></ion-icon>
+                  {{ isLoading ? 'Enviando...' : 'Enviar SMS' }}
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button 
+                  expand="block" 
+                  fill="outline" 
+                  color="medium"
+                  (click)="clearCommand()">
+                  Limpar
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Histórico de Comandos -->
+    <ion-card *ngIf="commandHistory.length > 0">
+      <ion-card-header>
+        <ion-card-title>
+          Histórico de Comandos
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            color="danger"
+            (click)="clearHistory()"
+            slot="end">
+            Limpar
+          </ion-button>
+        </ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngFor="let item of commandHistory; trackBy: trackByHistory">
+            <ion-label>
+              <h3>{{ item.command }}</h3>
+              <p>
+                <strong>Telefone:</strong> {{ item.phoneNumber }} | 
+                <strong>Tipo:</strong> {{ item.deviceType }} | 
+                <strong>Enviado:</strong> {{ item.sentAt | date:'dd/MM/yyyy HH:mm' }}
+              </p>
+              <p *ngIf="item.response">
+                <strong>Resposta:</strong> {{ item.response }}
+              </p>
+            </ion-label>
+            <ion-chip 
+              [color]="getStatusColor(item.status)" 
+              slot="end">
+              <ion-icon [name]="getStatusIcon(item.status)"></ion-icon>
+              {{ item.status }}
+            </ion-chip>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Estado Vazio -->
+    <ion-card *ngIf="availableCommands.length === 0">
+      <ion-card-content class="text-center">
+        <ion-icon name="settings-outline" size="large" color="medium"></ion-icon>
+        <h3>Selecione um tipo de equipamento</h3>
+        <p>Escolha o tipo de equipamento para ver os comandos disponíveis.</p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Toast -->
+  <ion-toast
+    [isOpen]="showToast"
+    [message]="toastMessage"
+    [duration]="3000"
+    [color]="toastColor"
+    (didDismiss)="showToast = false">
+  </ion-toast>
+
+  <!-- Alert -->
+  <ion-alert
+    [isOpen]="showAlert"
+    [header]="'Confirmação'"
+    [message]="alertMessage"
+    [buttons]="['OK']"
+    (didDismiss)="showAlert = false">
+  </ion-alert>
+</ion-content>

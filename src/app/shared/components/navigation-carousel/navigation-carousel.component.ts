@@ -12,8 +12,8 @@ import { addIcons } from 'ionicons';
 import {
   homeOutline,
   home,
-  qrCodeOutline,
-  qrCode,
+  terminalOutline,
+  terminal,
   settingsOutline,
   settings
 } from 'ionicons/icons';
@@ -54,10 +54,10 @@ export class NavigationCarouselComponent implements OnInit, OnDestroy {
       color: 'primary'
     },
     {
-      title: 'Scanner',
-      url: '/scanner',
-      icon: 'qr-code-outline',
-      activeIcon: 'qr-code',
+      title: 'Comandos',
+      url: '/comandos',
+      icon: 'terminal-outline',
+      activeIcon: 'terminal',
       color: 'secondary'
     },
     {
@@ -77,8 +77,8 @@ export class NavigationCarouselComponent implements OnInit, OnDestroy {
     addIcons({
       homeOutline,
       home,
-      qrCodeOutline,
-      qrCode,
+      terminalOutline,
+      terminal,
       settingsOutline,
       settings
     });

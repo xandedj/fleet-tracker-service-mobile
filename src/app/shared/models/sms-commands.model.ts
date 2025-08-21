@@ -58,45 +58,87 @@ export const CRX3_MINI_COMMANDS: SMSCommandTemplate[] = [
 export const GT02D_COMMANDS: SMSCommandTemplate[] = [
   {
     type: 'TIMEZONE',
-    template: 'TIMEZONE,E,3#',
+    template: '#6666#stz#w0#',
     description: 'Configuração do fuso horário',
     required: true,
     order: 1
   },
   {
     type: 'APN',
-    template: 'APN,{apn},{username},{password}#',
+    template: '#6666#sapn#{apn}#{username}#{password}#',
     description: 'Configuração do APN da operadora',
     required: true,
     order: 2
   },
   {
     type: 'SERVER',
-    template: 'SERVER,1,{ip},{port},0#',
+    template: '#6666#ip#{ip}#{port}#',
     description: 'Configuração do servidor de rastreamento',
     required: true,
     order: 3
   },
   {
     type: 'GPRS',
-    template: 'GPRS,1#',
+    template: '#6666#gprs#1#',
     description: 'Ativar GPRS',
     required: true,
     order: 4
   },
   {
     type: 'MOVING_INTERVAL',
-    template: 'MOVING,{interval}#',
+    template: '#6666#smt#{interval}#',
     description: 'Intervalo de envio em movimento',
     required: true,
     order: 5
   },
   {
     type: 'STOPPED_INTERVAL',
-    template: 'STOPPED,{interval}#',
+    template: '#6666#sst#{interval}#',
     description: 'Intervalo de envio parado',
     required: true,
     order: 6
+  },
+  {
+    type: 'FACTORY_RESET',
+    template: '#6666#factory#',
+    description: 'Reconfiguração de fábrica',
+    required: false,
+    order: 7
+  },
+  {
+    type: 'RESET',
+    template: '#6666#reset#',
+    description: 'Reiniciar o equipamento',
+    required: false,
+    order: 8
+  },
+  {
+    type: 'VINFO',
+    template: '#6666#vinfo#',
+    description: 'Ver o Status e o IMEI do equipamento',
+    required: false,
+    order: 9
+  },
+  {
+    type: 'BLOCK_VEHICLE',
+    template: '#6666#cf#',
+    description: 'Bloquear Veículo',
+    required: false,
+    order: 10
+  },
+  {
+    type: 'UNBLOCK_VEHICLE',
+    template: '#6666#of#',
+    description: 'Desbloquear Veículo',
+    required: false,
+    order: 11
+  },
+  {
+    type: 'CHECK_IP',
+    template: '#6666#ip?#',
+    description: 'Verificar IP do servidor atual',
+    required: false,
+    order: 12
   }
 ];
 
@@ -146,12 +188,12 @@ export function generateGT02DCommands(
   const config = { ...GT02D_DEFAULT_CONFIG, ...customConfig };
   
   return {
-    timezone: 'TIMEZONE,E,3#',
-    apn: `APN,${operatorConfig.apn},${operatorConfig.username},${operatorConfig.password}#`,
-    server: `SERVER,1,${serverConfig.ip},${serverConfig.port},0#`,
-    gprsActivation: 'GPRS,1#',
-    movingInterval: `MOVING,${config.movingInterval}#`,
-    stoppedInterval: `STOPPED,${config.stoppedInterval}#`
+    timezone: '#6666#stz#w0#',
+    apn: `#6666#sapn#${operatorConfig.apn}#${operatorConfig.username}#${operatorConfig.password}#`,
+    server: `#6666#ip#${serverConfig.ip}#${serverConfig.port}#`,
+    gprsActivation: '#6666#gprs#1#',
+    movingInterval: `#6666#smt#${config.movingInterval}#`,
+    stoppedInterval: `#6666#sst#${config.stoppedInterval}#`
   };
 }
 

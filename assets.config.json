@@ -1,0 +1,23 @@
+{
+  "assets": {
+    "iconPath": "src/assets/icon.png",
+    "splashPath": "src/assets/shapes.png",
+    "backgroundColor": "#ffffff",
+    "iconBackgroundColor": "#ffffff",
+    "iconBackgroundColorDark": "#000000",
+    "splashBackgroundColor": "#ffffff",
+    "splashBackgroundColorDark": "#000000",
+    "showLogo": true,
+    "logoSplash": "src/assets/shapes.png"
+  },
+  "platforms": {
+    "android": {
+      "adaptive": true,
+      "foregroundColorDark": "#000000",
+      "backgroundColorDark": "#ffffff"
+    },
+    "ios": {
+      "contentMode": "scaleAspectFit"
+    }
+  }
+}

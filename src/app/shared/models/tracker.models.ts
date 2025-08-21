@@ -43,7 +43,8 @@ export interface SMSCommand {
   chipNumber: string;
   command: string;
   commandType: 'TIMEZONE' | 'APN' | 'SERVER' | 'GPRS' | 'MOVING_INTERVAL' | 'STOPPED_INTERVAL' |
-               'TIMER' | 'GPRSON' | 'ANGLEREP' | 'DISTANCE';
+               'TIMER' | 'GPRSON' | 'ANGLEREP' | 'DISTANCE' | 'FACTORY_RESET' | 'RESET' |
+               'VINFO' | 'BLOCK_VEHICLE' | 'UNBLOCK_VEHICLE' | 'CHECK_IP';
   status: 'PENDING' | 'SENT' | 'CONFIRMED' | 'FAILED';
   sentAt?: Date;
   confirmedAt?: Date;
