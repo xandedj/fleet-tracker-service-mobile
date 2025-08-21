@@ -13,7 +13,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo: 'config',
         pathMatch: 'full',
       },
       {
@@ -31,7 +31,9 @@ export const routes: Routes = [
       {
         path: 'config',
         loadComponent: () =>
-          import('./features/config/config-simple.page').then((m) => m.ConfigSimplePage),
+          import('./features/config/config-simple.page').then(
+            (m) => m.ConfigSimplePage
+          ),
       },
     ],
   },
@@ -43,6 +45,7 @@ export const routes: Routes = [
   },
   {
     path: 'scanner',
-    loadComponent: () => import('./features/scanner/scanner.page').then( m => m.ScannerPage)
+    loadComponent: () =>
+      import('./features/scanner/scanner.page').then((m) => m.ScannerPage),
   },
 ];

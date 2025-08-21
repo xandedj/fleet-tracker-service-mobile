@@ -30,7 +30,7 @@ import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions
 export class TrackerConfigService {
   private configurationSessionSubject = new BehaviorSubject<ConfigurationSession | null>(null);
   public configurationSession$ = this.configurationSessionSubject.asObservable();
-  private smsDelay = 20000; // 10 segundos entre comandos
+  private smsDelay = 20000; // 20 segundos entre comandos
 
   constructor(
     private traccarService: TraccarService,
